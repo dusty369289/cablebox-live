@@ -14,45 +14,66 @@
 
 	let { channels, currentChannelIndex, now, onTune, onImport }: Props = $props();
 
-	// Total visible window: 30min past + 6hrs future
-	const LOOKBACK = 30 * 60;
-	const LOOKAHEAD = 6 * 60 * 60;
-	const RANGE_DURATION = LOOKBACK + LOOKAHEAD;
-
-	// Each hour = 300px of horizontal space
-	const PX_PER_SECOND = 300 / 3600;
-	const TOTAL_WIDTH = Math.ceil(RANGE_DURATION * PX_PER_SECOND);
 	const CHANNEL_COL_WIDTH = 140;
+	const LOOKBACK = 30 * 60; // 30 minutes past
+	const MOBILE_BREAKPOINT = 900;
+
+	// On wide screens: fit 2hrs into available width (no horizontal scroll)
+	// On narrow screens: 6hrs at 300px/hr (horizontal scroll enabled)
+	let containerWidth = $state(1200);
+	let isMobile = $derived(containerWidth < MOBILE_BREAKPOINT);
+
+	let lookahead = $derived(isMobile ? 6 * 60 * 60 : 90 * 60);
+	let rangeDuration = $derived(LOOKBACK + lookahead);
+
+	// On desktop, fit content to container. On mobile, fixed 300px/hr.
+	let trackWidth = $derived(isMobile
+		? Math.ceil(rangeDuration * (300 / 3600))
+		: containerWidth - CHANNEL_COL_WIDTH
+	);
+	let pxPerSecond = $derived(trackWidth / rangeDuration);
+	let totalRowWidth = $derived(trackWidth + CHANNEL_COL_WIDTH);
 
 	let rangeStart = $derived(now - LOOKBACK);
 
-	// Time markers every 30 minutes
 	let timeMarkers = $derived.by(() => {
 		const markers: { time: number; label: string; left: number }[] = [];
 		const firstMarker = Math.ceil(rangeStart / 1800) * 1800;
-		for (let t = firstMarker; t < rangeStart + RANGE_DURATION; t += 1800) {
+		for (let t = firstMarker; t < rangeStart + rangeDuration; t += 1800) {
 			const date = new Date(t * 1000);
 			const label = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-			markers.push({ time: t, label, left: (t - rangeStart) * PX_PER_SECOND });
+			markers.push({ time: t, label, left: (t - rangeStart) * pxPerSecond });
 		}
 		return markers;
 	});
 
-	let nowLeft = $derived((now - rangeStart) * PX_PER_SECOND);
+	let nowLeft = $derived((now - rangeStart) * pxPerSecond);
 
 	let channelSlots = $derived(
 		channels.map((ch) => ({
 			channel: ch,
-			slots: getScheduleRange(ch, rangeStart, rangeStart + RANGE_DURATION)
+			slots: getScheduleRange(ch, rangeStart, rangeStart + rangeDuration)
 		}))
 	);
 
 	let scrollContainer: HTMLDivElement | undefined = $state();
+	let guideEl: HTMLDivElement | undefined = $state();
 
-	// On mount, scroll to show "now" near the left
 	onMount(() => {
-		if (scrollContainer) {
-			scrollContainer.scrollLeft = Math.max(0, nowLeft - 60);
+		if (guideEl) {
+			containerWidth = guideEl.clientWidth;
+			const ro = new ResizeObserver((entries) => {
+				containerWidth = entries[0].contentRect.width;
+			});
+			ro.observe(guideEl);
+			return () => ro.disconnect();
+		}
+	});
+
+	// On mobile, scroll to show "now" near the left
+	$effect(() => {
+		if (isMobile && scrollContainer) {
+			scrollContainer.scrollLeft = Math.max(0, nowLeft - 40);
 		}
 	});
 
@@ -65,15 +86,15 @@
 	});
 </script>
 
-<div class="tv-guide">
-	<div class="guide-scroll" bind:this={scrollContainer}>
+<div class="tv-guide" bind:this={guideEl}>
+	<div class="guide-scroll" class:scrollable={isMobile} bind:this={scrollContainer}>
 		<!-- Header row -->
-		<div class="guide-header" style="width: {TOTAL_WIDTH + CHANNEL_COL_WIDTH}px;">
-			<div class="header-label">
+		<div class="guide-header" style="width: {totalRowWidth}px;">
+			<div class="header-label" style="width: {CHANNEL_COL_WIDTH}px; min-width: {CHANNEL_COL_WIDTH}px;">
 				<span class="header-title">GUIDE</span>
 				<button class="header-btn" onclick={onImport} title="Import Channels (I)">+ Import</button>
 			</div>
-			<div class="time-axis" style="width: {TOTAL_WIDTH}px;">
+			<div class="time-axis" style="width: {trackWidth}px;">
 				{#each timeMarkers as marker (marker.time)}
 					<div class="time-marker" style="left: {marker.left}px;">
 						{marker.label}
@@ -90,8 +111,8 @@
 				{slots}
 				isActive={i === currentChannelIndex}
 				{rangeStart}
-				pxPerSecond={PX_PER_SECOND}
-				totalWidth={TOTAL_WIDTH}
+				{pxPerSecond}
+				totalWidth={trackWidth}
 				channelColWidth={CHANNEL_COL_WIDTH}
 				{now}
 				{onTune}
@@ -124,14 +145,19 @@
 	}
 
 	.guide-scroll {
-		overflow: auto;
+		overflow-y: auto;
+		overflow-x: hidden;
 		flex: 1;
+	}
+
+	.guide-scroll.scrollable {
+		overflow-x: auto;
 	}
 
 	/* Scrollbar styling */
 	.guide-scroll::-webkit-scrollbar {
 		width: 8px;
-		height: 8px;
+		height: 6px;
 	}
 	.guide-scroll::-webkit-scrollbar-track {
 		background: var(--color-surface);
@@ -153,7 +179,8 @@
 	.header-label {
 		flex-shrink: 0;
 		height: 32px;
-		padding: 0 6px;
+		padding: 0 10px;
+		box-sizing: border-box;
 		border-right: 2px solid var(--color-border);
 		background: var(--color-surface);
 		display: flex;
@@ -215,7 +242,7 @@
 		z-index: 1;
 	}
 
-	@media (max-width: 640px) {
+	@media (max-width: 900px) {
 		.tv-guide {
 			max-height: 70vh;
 			max-height: 70dvh;

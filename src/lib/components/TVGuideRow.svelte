@@ -128,6 +128,7 @@
 		align-items: center;
 		gap: 8px;
 		padding: 0 10px;
+		box-sizing: border-box;
 		background: var(--color-surface);
 		border-right: 2px solid var(--color-border);
 		color: var(--color-text);
