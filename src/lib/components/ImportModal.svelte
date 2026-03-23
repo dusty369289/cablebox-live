@@ -175,6 +175,7 @@
 		width: 500px;
 		max-width: 90vw;
 		max-height: 80vh;
+		max-height: 80dvh;
 		background: #111;
 		border: 2px solid #3a3;
 		border-radius: 8px;

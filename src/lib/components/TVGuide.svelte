@@ -96,6 +96,7 @@
 		left: 0;
 		right: 0;
 		max-height: 50vh;
+		max-height: 50dvh;
 		background: var(--color-guide-bg);
 		border-top: 2px solid var(--color-primary);
 		font-family: var(--font-family);
@@ -209,6 +210,7 @@
 	@media (max-width: 640px) {
 		.tv-guide {
 			max-height: 70vh;
+			max-height: 70dvh;
 		}
 
 		.header-label {

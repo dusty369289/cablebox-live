@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { Channel } from '$lib/scheduling/types.js';
+
+	const version: string = __COMMIT_HASH__;
 	import { deleteUserChannel, saveUserChannel } from '$lib/data/channel-store.js';
 	import { validateAndParse } from '$lib/bookmarklet/importer.js';
 	import {
@@ -224,6 +226,8 @@
 						<div class="shortcut"><kbd>0-9</kbd> Direct Tune</div>
 					</div>
 				</div>
+
+				<div class="version">Build: {version}</div>
 			{/if}
 		</div>
 	</div>
@@ -244,6 +248,7 @@
 		width: 520px;
 		max-width: 90vw;
 		max-height: 80vh;
+		max-height: 80dvh;
 		background: var(--color-surface);
 		border: 2px solid var(--color-primary);
 		border-radius: var(--border-radius);
@@ -419,6 +424,14 @@
 		font-family: var(--font-family);
 		font-size: 0.8em;
 		color: var(--color-primary);
+	}
+
+	.version {
+		text-align: center;
+		font-size: 0.7rem;
+		color: var(--color-text-dim);
+		padding: 8px 0 0;
+		opacity: 0.6;
 	}
 
 	/* Edit & row actions */

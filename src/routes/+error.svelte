@@ -16,6 +16,7 @@
 		align-items: center;
 		justify-content: center;
 		height: 100vh;
+		height: 100dvh;
 		background: #000;
 		font-family: monospace;
 		color: #ccc;

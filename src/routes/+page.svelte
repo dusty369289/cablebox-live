@@ -383,6 +383,7 @@
 		align-items: center;
 		justify-content: center;
 		height: 100vh;
+		height: 100dvh;
 		color: var(--color-primary);
 		font-family: var(--font-family);
 		font-size: 1.5rem;
@@ -403,6 +404,7 @@
 		justify-content: center;
 		width: 100vw;
 		height: 100vh;
+		height: 100dvh;
 		background: var(--color-bg);
 		border: none;
 		cursor: pointer;
@@ -443,6 +445,7 @@
 		position: relative;
 		width: 100vw;
 		height: 100vh;
+		height: 100dvh;
 	}
 
 	.top-bar {
@@ -467,7 +470,7 @@
 
 	.controls-bar {
 		position: absolute;
-		bottom: 20px;
+		bottom: calc(20px + env(safe-area-inset-bottom, 0px));
 		right: 20px;
 		display: flex;
 		align-items: center;
@@ -514,7 +517,7 @@
 		}
 
 		.controls-bar {
-			bottom: 10px;
+			bottom: calc(10px + env(safe-area-inset-bottom, 0px));
 			left: 10px;
 			right: 10px;
 			justify-content: space-between;

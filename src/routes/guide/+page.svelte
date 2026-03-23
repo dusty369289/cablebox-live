@@ -151,6 +151,7 @@
 		font-family: var(--font-family);
 		color: var(--color-text);
 		min-height: 100vh;
+		min-height: 100dvh;
 	}
 
 	.guide-header {

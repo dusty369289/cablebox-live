@@ -46,7 +46,7 @@
 <style>
 	.banner {
 		position: absolute;
-		bottom: 80px;
+		bottom: calc(80px + env(safe-area-inset-bottom, 0px));
 		left: 20px;
 		display: flex;
 		align-items: center;
@@ -107,7 +107,7 @@
 		.banner {
 			left: 10px;
 			right: 10px;
-			bottom: 70px;
+			bottom: calc(70px + env(safe-area-inset-bottom, 0px));
 			padding: 8px 12px;
 			gap: 10px;
 		}
