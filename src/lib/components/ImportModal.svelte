@@ -51,10 +51,12 @@
 		importing = true;
 
 		try {
-			for (const ch of preview) {
+			// Deep clone to strip Svelte $state proxies — IndexedDB can't clone proxies
+			const plain = JSON.parse(JSON.stringify(preview));
+			for (const ch of plain) {
 				await saveUserChannel(ch);
 			}
-			onImport(preview);
+			onImport(plain);
 		} catch (err) {
 			error = `Import failed: ${err}`;
 		} finally {
