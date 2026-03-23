@@ -240,7 +240,7 @@ async function autoScrollAndCollect(
 
 		// Check if new DOM elements appeared (to detect end of content)
 		const currentDomCount = document.querySelectorAll(
-			'ytd-rich-item-renderer, ytd-playlist-video-renderer, ytd-video-renderer, ytd-grid-video-renderer, ytd-rich-grid-media, ytd-compact-video-renderer'
+			'ytd-rich-item-renderer, ytd-playlist-video-renderer, ytd-video-renderer, ytd-grid-video-renderer'
 		).length;
 
 		if (currentDomCount === lastDomCount) staleRounds++;
@@ -273,30 +273,55 @@ function findVideoRenderer(data: any): any {
 	return null;
 }
 
+/** Detect the channel name from the page header (for channel pages). */
+function getPageChannelName(): string {
+	// Channel page header
+	const channelName = document.querySelector('ytd-channel-name yt-formatted-string')?.textContent?.trim();
+	if (channelName) return channelName;
+	// Fallback: meta tag
+	const meta = document.querySelector('meta[property="og:title"]');
+	if (meta) return (meta as HTMLMetaElement).content?.trim() || '';
+	return '';
+}
+
 /** Try to extract a ScrapedVideo from an element's .data property. */
-function extractFromElementData(data: any): ScrapedVideo | null {
+function extractFromElementData(data: any, fallbackChannel: string): ScrapedVideo | null {
 	if (!data) return null;
 
 	// New format: lockupViewModel (signed-in homepage, subscriptions)
 	const lvm = data.content?.lockupViewModel;
-	if (lvm) return extractFromLockupViewModel(lvm);
+	if (lvm) {
+		const video = extractFromLockupViewModel(lvm);
+		if (video && !video.channel) video.channel = fallbackChannel;
+		return video;
+	}
 
 	// Old format: videoRenderer and variants
 	const renderer = findVideoRenderer(data);
-	return extractFromVideoRenderer(renderer);
+	const video = extractFromVideoRenderer(renderer);
+	if (video && !video.channel) video.channel = fallbackChannel;
+	return video;
 }
 
 /** Extract videos from the current DOM and add to the map (deduped by ID). */
 function collectFromDOM(collected: Map<string, ScrapedVideo>) {
+	const fallbackChannel = getPageChannelName();
+
+	// Primary content selectors (no ytd-rich-grid-media — it's a child of rich-item-renderer)
 	const selectors = [
 		'ytd-rich-item-renderer', 'ytd-playlist-video-renderer',
-		'ytd-video-renderer', 'ytd-compact-video-renderer',
-		'ytd-grid-video-renderer', 'ytd-rich-grid-media'
+		'ytd-video-renderer', 'ytd-grid-video-renderer'
 	];
 
+	// Scope to main content area — exclude sidebar recommendations
+	const mainContent = document.querySelector('ytd-rich-grid-renderer, ytd-section-list-renderer, ytd-playlist-video-list-renderer, ytd-search');
+
 	for (const selector of selectors) {
-		for (const elem of document.querySelectorAll(selector)) {
-			const video = extractFromElementData((elem as any).data);
+		const scope = mainContent || document;
+		for (const elem of scope.querySelectorAll(selector)) {
+			// Skip if inside secondary results (sidebar)
+			if (elem.closest('ytd-watch-next-secondary-results-renderer')) continue;
+			const video = extractFromElementData((elem as any).data, fallbackChannel);
 			if (video && !collected.has(video.id)) {
 				collected.set(video.id, video);
 			}

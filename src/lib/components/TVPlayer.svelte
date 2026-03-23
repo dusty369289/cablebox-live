@@ -17,19 +17,23 @@
 	let player: YTPlayer | null = null;
 	let ready = $state(false);
 	let currentVideoId = '';
+	let settingsApplied = false;
 
 	onMount(async () => {
 		player = await createPlayer('yt-player', {
 			onReady: () => {
 				ready = true;
-				// Apply persisted volume/mute settings
-				player!.setVolume(getVolume());
-				if (getIsMuted()) player!.mute();
 				if (videoId) {
 					loadVideo(videoId, startSeconds);
 				}
 			},
 			onStateChange: (state) => {
+				if (state === PlayerState.PLAYING && player && !settingsApplied) {
+					// Apply persisted volume/mute on first play
+					settingsApplied = true;
+					player.setVolume(getVolume());
+					if (getIsMuted()) player.mute();
+				}
 				// Auto-resume if paused — no pause allowed, enforces live schedule
 				if (state === PlayerState.PAUSED && player) {
 					player.playVideo();
