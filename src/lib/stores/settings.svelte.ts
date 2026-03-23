@@ -5,7 +5,6 @@
 const STORAGE_KEY = 'cablebox-settings';
 
 export type Theme = 'cable-90s' | 'phosphor' | 'material';
-
 export const THEMES: { id: Theme; label: string }[] = [
 	{ id: 'cable-90s', label: '90s Cable' },
 	{ id: 'phosphor', label: 'Phosphor' },
@@ -17,7 +16,7 @@ type Settings = {
 	muted: boolean;
 	crtEnabled: boolean;
 	theme: Theme;
-	hiddenDefaults: string[]; // slugs of hidden default channels
+	hiddenDefaults: string[];
 };
 
 const defaults: Settings = {
