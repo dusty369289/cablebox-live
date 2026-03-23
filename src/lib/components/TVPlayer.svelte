@@ -4,6 +4,8 @@
 	import { PlayerState } from '$lib/youtube/types.js';
 	import type { YTPlayer } from '$lib/youtube/types.js';
 
+	import { getVolume, isMuted as getIsMuted } from '$lib/stores/settings.svelte.js';
+
 	type Props = {
 		videoId: string;
 		startSeconds: number;
@@ -20,6 +22,9 @@
 		player = await createPlayer('yt-player', {
 			onReady: () => {
 				ready = true;
+				// Apply persisted volume/mute settings
+				player!.setVolume(getVolume());
+				if (getIsMuted()) player!.mute();
 				if (videoId) {
 					loadVideo(videoId, startSeconds);
 				}

@@ -9,10 +9,20 @@
 	let { channel, videoTitle }: Props = $props();
 	let visible = $state(false);
 	let timeout: ReturnType<typeof setTimeout> | null = null;
+	let lastChannelSlug = '';
+	let initialized = false;
 
-	// Show banner whenever channel changes
+	// Show banner only on channel *switches*, not initial load
 	$effect(() => {
-		if (channel) {
+		if (!channel) return;
+		const slug = channel.slug;
+		if (!initialized) {
+			initialized = true;
+			lastChannelSlug = slug;
+			return;
+		}
+		if (slug !== lastChannelSlug) {
+			lastChannelSlug = slug;
 			visible = true;
 			if (timeout) clearTimeout(timeout);
 			timeout = setTimeout(() => {
