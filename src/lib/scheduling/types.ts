@@ -8,7 +8,7 @@ export type Video = {
 
 /** A source of videos — either baked-in defaults or user-imported. */
 export type ChannelSource =
-	| { type: 'default'; youtubeChannelId: string; videos: Video[] }
+	| { type: 'default'; youtubeChannelIds: string[]; videos: Video[] }
 	| { type: 'imported'; videos: Video[] };
 
 /** A TV channel composed of one or more video sources. */

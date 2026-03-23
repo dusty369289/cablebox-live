@@ -1,42 +1,120 @@
-# sv
+# CableBox
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+**Retro cable TV experience for YouTube.** Deterministic scheduling, channel surfing, and a 90s EPG — all in the browser.
 
-## Creating a project
+[**Live Demo**](https://dusty369289.github.io/cablebox/)
 
-If you're seeing this, you've probably already done this step. Congrats!
+---
 
-```sh
-# create a new project
-npx sv create my-app
-```
+## What is this?
 
-To recreate this project with the same configuration:
+CableBox turns YouTube into a cable TV experience. Instead of choosing what to watch, you tune into channels and watch whatever is on — just like real TV. Every viewer on the same channel sees the same video at the same time.
 
-```sh
-# recreate this project
-npx sv@0.12.8 create --template minimal --types ts --no-install .
-```
+**10 topic-based channels** come built in (Science, Mathematics, Technology, History, Geography, Cooking, Nature, Engineering, Documentary, Space), each aggregating content from top YouTube creators in that field. Import your own channels from any YouTube page using the bookmarklet.
 
-## Developing
+## Features
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+- **Deterministic scheduling** — videos play on a fixed timeline. No choices, no algorithm. Everyone sees the same thing.
+- **TV guide grid** — scrollable program guide showing what's on now and upcoming, just like a real EPG.
+- **Channel surfing** — arrow keys, number pad, or click to switch channels. Static transition on switch.
+- **Bookmarklet scraper** — scan any YouTube page (homepage, subscriptions, channels, playlists) to import videos as custom channels. Auto-scrolls to load all content.
+- **3 themes** — 90s Cable (Prevue Channel aesthetic), Phosphor (green CRT), Material Design 3 dark.
+- **CRT scan line overlay** — optional retro TV effect with flicker and vignette.
+- **Fully static** — no server, no API calls at runtime. Hosts on GitHub Pages for free.
+- **Mobile responsive** — touch swipe for channels, collapsed guide on small screens.
+- **Channel management** — toggle default channels, delete imports, edit channel JSON directly.
+- **Persistent settings** — theme, volume, mute, last channel, hidden defaults all saved in localStorage.
 
-```sh
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `G` | Toggle TV guide |
+| `I` | Import channels |
+| `E` | Settings |
+| `F` | Fullscreen |
+| `M` | Mute/unmute |
+| `C` | Toggle CRT effect |
+| `T` | Cycle theme |
+| `Up/Down` | Channel up/down |
+| `0-9` | Direct channel number |
+
+## Tech Stack
+
+- **SvelteKit** with Svelte 5 runes, adapter-static
+- **TypeScript** throughout
+- **Vitest** for unit tests (39 tests, scheduling algorithm fully covered)
+- **Playwright** for E2E testing
+- **YouTube IFrame Player API** for playback
+- **YouTube Data API v3** for build-time channel data
+- **IndexedDB** for user-imported channels
+- **CSS custom properties** for theme system
+- **esbuild** for bookmarklet compilation
+- **GitHub Actions** for CI/CD to GitHub Pages
+
+## Development
+
+```bash
+npm install
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+### Build channel data
 
-To create a production version of your app:
+Requires a YouTube Data API v3 key:
 
-```sh
-npm run build
+```bash
+cp .env.example .env
+# Add your YOUTUBE_API_KEY to .env
+npm run build:channels
 ```
 
-You can preview the production build with `npm run preview`.
+### Build bookmarklet
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+npm run build:bookmarklet
+```
+
+### Run tests
+
+```bash
+npm run test        # unit tests
+npm run check       # type checking
+npm run build       # production build
+```
+
+## Architecture
+
+```
+Browser (client-side only)
+├── Scheduler (pure function) — deterministic video selection from timestamp
+├── YouTube IFrame Player — single iframe, swapped on channel change
+├── TV Guide — computed from getScheduleRange(), 2-hour window
+├── IndexedDB — persisted user-imported channels
+├── localStorage — settings, theme, last channel, hidden defaults
+└── Static JSON — pre-built default channel data (no runtime API calls)
+
+Build time (local only)
+├── YouTube Data API v3 — fetch videos for default topic channels
+├── Round-robin balancing — interleave videos from multiple sources
+└── esbuild — compile bookmarklet scraper to standalone JS
+```
+
+## Default Channels
+
+| # | Channel | Sources |
+|---|---------|---------|
+| 1 | Science | Kurzgesagt, Veritasium, Vsauce, SmarterEveryDay, MinutePhysics |
+| 2 | Mathematics | 3Blue1Brown, Numberphile, Mathologer, Stand-up Maths |
+| 3 | Technology | Fireship, Technology Connections, Tom Scott, Computerphile |
+| 4 | History | OverSimplified, Extra History, History Matters, Kings and Generals |
+| 5 | Geography | Geography Now, RealLifeLore, WonderWhy, Atlas Pro |
+| 6 | Cooking | Bon Appetit, Joshua Weissman, Binging with Babish, Adam Ragusea |
+| 7 | Nature | BBC Earth, National Geographic, Deep Look, Brave Wilderness |
+| 8 | Engineering | Mark Rober, Practical Engineering, Real Engineering, Wendover Productions |
+| 9 | Documentary | LEMMiNO, ColdFusion, ElectroBOOM, Last Week Tonight |
+| 10 | Space | PBS Space Time, Astrum, Cool Worlds, Scott Manley |
+
+## License
+
+MIT

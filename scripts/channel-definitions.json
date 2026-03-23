@@ -1,72 +1,123 @@
 [
 	{
-		"name": "Kurzgesagt",
-		"slug": "kurzgesagt",
+		"name": "Science",
+		"slug": "science",
 		"number": 1,
-		"category": "Science",
-		"youtubeChannelId": "UCsXVk37bltHxD1rDPwtNM8Q"
+		"category": "Education",
+		"youtubeChannels": [
+			{ "id": "UCsXVk37bltHxD1rDPwtNM8Q", "name": "Kurzgesagt" },
+			{ "id": "UCHnyfMqiRRG1u-2MsSQLbXA", "name": "Veritasium" },
+			{ "id": "UC6nSFpj9HTCZ5t-N3Rm3-HA", "name": "Vsauce" },
+			{ "id": "UC1yNl2E66ZzKApQdRuTQ4tw", "name": "SmarterEveryDay" },
+			{ "id": "UCUHW94eEFW7hkUMVaZz4eDg", "name": "MinutePhysics" }
+		]
 	},
 	{
-		"name": "Tom Scott",
-		"slug": "tom-scott",
+		"name": "Mathematics",
+		"slug": "mathematics",
 		"number": 2,
 		"category": "Education",
-		"youtubeChannelId": "UCBa659QWEk1AI4Tg--mrJ2A"
+		"youtubeChannels": [
+			{ "id": "UCYO_jab_esuFRV4b17AJtAw", "name": "3Blue1Brown" },
+			{ "id": "UCoxcjq-8xIDTYp3uz647V5A", "name": "Numberphile" },
+			{ "id": "UC1_uAIS3r8Vu6JjXWvastJg", "name": "Mathologer" },
+			{ "id": "UCSju5G2aFaWMqn-_0YBtq5A", "name": "Stand-up Maths" }
+		]
 	},
 	{
-		"name": "3Blue1Brown",
-		"slug": "3blue1brown",
+		"name": "Technology",
+		"slug": "technology",
 		"number": 3,
-		"category": "Science",
-		"youtubeChannelId": "UCYO_jab_esuFRV4b17AJtAw"
+		"category": "Education",
+		"youtubeChannels": [
+			{ "id": "UCsBjURrPoezykLs9EqgamOA", "name": "Fireship" },
+			{ "id": "UCy0tKL1T7wFoYcxCe0xjN6Q", "name": "Technology Connections" },
+			{ "id": "UCBa659QWEk1AI4Tg--mrJ2A", "name": "Tom Scott" },
+			{ "id": "UC9-y-6csu5WGm29I7JiwpnA", "name": "Computerphile" }
+		]
 	},
 	{
-		"name": "Fireship",
-		"slug": "fireship",
+		"name": "History",
+		"slug": "history",
 		"number": 4,
-		"category": "Technology",
-		"youtubeChannelId": "UCsBjURrPoezykLs9EqgamOA"
+		"category": "Education",
+		"youtubeChannels": [
+			{ "id": "UCNIuvl7V8zACPpTmmNIqP2A", "name": "OverSimplified" },
+			{ "id": "UCCODtTcd5M1JavPCOr_Uydg", "name": "Extra History" },
+			{ "id": "UC22BdTgxefuvUivrjesETjg", "name": "History Matters" },
+			{ "id": "UCMmaBzfCCwZ2KqaBJjkj0fw", "name": "Kings and Generals" }
+		]
 	},
 	{
-		"name": "Veritasium",
-		"slug": "veritasium",
+		"name": "Geography",
+		"slug": "geography",
 		"number": 5,
-		"category": "Science",
-		"youtubeChannelId": "UCHnyfMqiRRG1u-2MsSQLbXA"
+		"category": "Education",
+		"youtubeChannels": [
+			{ "id": "UCmmPgObSUPw1HL2lq6H4ffA", "name": "Geography Now" },
+			{ "id": "UCP5tjEmvPItGyLhmjdwP7Ww", "name": "RealLifeLore" },
+			{ "id": "UC6yGjSmpgDhzmtBr6iIHLQA", "name": "WonderWhy" },
+			{ "id": "UCz1oFxMrgrQ82-276UCOU9w", "name": "Atlas Pro" }
+		]
 	},
 	{
-		"name": "Lemmino",
-		"slug": "lemmino",
+		"name": "Cooking",
+		"slug": "cooking",
 		"number": 6,
-		"category": "Documentary",
-		"youtubeChannelId": "UCRcgy6GzDeccI7dkbbBna3Q"
+		"category": "Lifestyle",
+		"youtubeChannels": [
+			{ "id": "UCbpMy0Fg74eXXkvxJrtEn3w", "name": "Bon Appetit" },
+			{ "id": "UCcjhYlL1WRBjKaJsMH_h7Lg", "name": "Joshua Weissman" },
+			{ "id": "UCJHA_jMfCvEnv-3kRjTCQXw", "name": "Binging with Babish" },
+			{ "id": "UC9_p50tH3WmMslWRWKnM7dQ", "name": "Adam Ragusea" }
+		]
 	},
 	{
-		"name": "Technology Connections",
-		"slug": "technology-connections",
+		"name": "Nature",
+		"slug": "nature",
 		"number": 7,
-		"category": "Technology",
-		"youtubeChannelId": "UCy0tKL1T7wFoYcxCe0xjN6Q"
+		"category": "Documentary",
+		"youtubeChannels": [
+			{ "id": "UCwmZiChSryoWQCZMIQezgTg", "name": "BBC Earth" },
+			{ "id": "UCpVm7bg6pXKo1Pr6k5kxG9A", "name": "National Geographic" },
+			{ "id": "UC-3SbfTPJsL8fJAPKiVqBLg", "name": "Deep Look" },
+			{ "id": "UC6E2mP01ZLH_kbAyeazCNdg", "name": "Brave Wilderness" }
+		]
 	},
 	{
-		"name": "Bon Appetit",
-		"slug": "bon-appetit",
+		"name": "Engineering",
+		"slug": "engineering",
 		"number": 8,
-		"category": "Cooking",
-		"youtubeChannelId": "UCbpMy0Fg74eXXkvxJrtEn3w"
+		"category": "Education",
+		"youtubeChannels": [
+			{ "id": "UCY1kMZp36IQSyNx_9h4mpCg", "name": "Mark Rober" },
+			{ "id": "UCj1VqrHhDte54oLgPG4xpuQ", "name": "Practical Engineering" },
+			{ "id": "UCR1IuLEqb6UEA_zQ81kwXfg", "name": "Real Engineering" },
+			{ "id": "UCjgpFI5dU-D1-kh9H1muoxQ", "name": "Wendover Productions" }
+		]
 	},
 	{
-		"name": "Mark Rober",
-		"slug": "mark-rober",
+		"name": "Documentary",
+		"slug": "documentary",
 		"number": 9,
-		"category": "Science",
-		"youtubeChannelId": "UCY1kMZp36IQSyNx_9h4mpCg"
+		"category": "Documentary",
+		"youtubeChannels": [
+			{ "id": "UCRcgy6GzDeccI7dkbbBna3Q", "name": "LEMMiNO" },
+			{ "id": "UCnQC_G5Xsjhp9fEJKuIcrSw", "name": "ColdFusion" },
+			{ "id": "UCJ0-OtVpF0wOKEqT2Z1HEtA", "name": "ElectroBOOM" },
+			{ "id": "UC3XTzVzaHQEd30rQbuvCtTQ", "name": "Last Week Tonight" }
+		]
 	},
 	{
-		"name": "Lofi Girl",
-		"slug": "lofi-girl",
+		"name": "Space",
+		"slug": "space",
 		"number": 10,
-		"category": "Music",
-		"youtubeChannelId": "UCSJ4gkVC6NrvII8umztf0Ow"
+		"category": "Education",
+		"youtubeChannels": [
+			{ "id": "UC7_gcs09iThXybpVgjHZ_7g", "name": "PBS Space Time" },
+			{ "id": "UCddiUEpeqJcYeBxX1IVBKvQ", "name": "Astrum" },
+			{ "id": "UCQkLvACGWo8IlY1-WKfPp6g", "name": "Cool Worlds" },
+			{ "id": "UC1znqKFL3jeR0eoA0pHpzvw", "name": "Scott Manley" }
+		]
 	}
 ]
