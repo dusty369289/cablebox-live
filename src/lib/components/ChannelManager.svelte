@@ -18,7 +18,7 @@
 
 	let { channels, onChanged, onClose }: Props = $props();
 
-	let activeTab = $state<'channels' | 'appearance'>('channels');
+	let activeTab = $state<'channels' | 'appearance' | 'about'>('channels');
 	let confirmDelete = $state<string | null>(null);
 	let editingSlug = $state<string | null>(null);
 	let editJson = $state('');
@@ -112,6 +112,9 @@
 			<button class="tab" class:active={activeTab === 'appearance'} onclick={() => (activeTab = 'appearance')}>
 				Appearance
 			</button>
+			<button class="tab" class:active={activeTab === 'about'} onclick={() => (activeTab = 'about')}>
+				About
+			</button>
 		</div>
 
 		<div class="modal-body">
@@ -183,7 +186,7 @@
 					{/if}
 				</div>
 
-			{:else}
+			{:else if activeTab === 'appearance'}
 				<!-- Appearance Tab -->
 				<div class="section">
 					<h3 class="section-title">Theme</h3>
@@ -228,6 +231,32 @@
 				</div>
 
 				<div class="version">Build: {version}</div>
+			{:else}
+				<!-- About Tab -->
+				<div class="about">
+					<div class="about-title">CableBox</div>
+					<p class="about-desc">
+						A retro cable TV experience for YouTube. Deterministic scheduling,
+						channel surfing, and a 90s EPG — all in the browser.
+					</p>
+					<div class="about-credits">
+						<div class="about-label">Created by</div>
+						<a href="https://3net.dev" target="_blank" rel="noopener" class="about-link">
+							Ethan Wright
+						</a>
+					</div>
+					<div class="about-credits">
+						<div class="about-label">Source code</div>
+						<a href="https://github.com/dusty369289/cablebox" target="_blank" rel="noopener" class="about-link">
+							github.com/dusty369289/cablebox
+						</a>
+					</div>
+					<div class="about-credits">
+						<div class="about-label">License</div>
+						<span class="about-text">Apache 2.0</span>
+					</div>
+					<div class="version">Build: {version}</div>
+				</div>
 			{/if}
 		</div>
 	</div>
@@ -424,6 +453,56 @@
 		font-family: var(--font-family);
 		font-size: 0.8em;
 		color: var(--color-primary);
+	}
+
+	/* About tab */
+	.about {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 16px;
+		padding: 12px 0;
+	}
+
+	.about-title {
+		font-size: 1.5rem;
+		font-weight: bold;
+		color: var(--color-primary);
+		text-shadow: var(--text-glow);
+	}
+
+	.about-desc {
+		color: var(--color-text-dim);
+		font-size: 0.85rem;
+		text-align: center;
+		line-height: 1.5;
+		max-width: 320px;
+		margin: 0;
+	}
+
+	.about-credits {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+	}
+
+	.about-label {
+		font-size: 0.7rem;
+		color: var(--color-text-dim);
+		text-transform: uppercase;
+	}
+
+	.about-link {
+		color: var(--color-primary);
+		text-decoration: none;
+		font-size: 0.9rem;
+	}
+	.about-link:hover { text-decoration: underline; color: var(--color-primary-bright); }
+
+	.about-text {
+		color: var(--color-text);
+		font-size: 0.9rem;
 	}
 
 	.version {
