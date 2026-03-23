@@ -14,7 +14,9 @@ export function getChannelVideos(channel: Channel): Video[] {
 		allVideos.push(...source.videos);
 	}
 	if (allVideos.length === 0) return [];
-	const seed = hashString(channel.slug);
+	// Seed from sorted video IDs — identical content always produces the same schedule
+	const contentKey = allVideos.map((v) => v.id).sort().join(',');
+	const seed = hashString(contentKey);
 	return seededShuffle(allVideos, seed);
 }
 
