@@ -24,12 +24,17 @@
 					loadVideo(videoId, startSeconds);
 				}
 			},
+			onStateChange: (state) => {
+				// Auto-resume if paused — no pause allowed, enforces live schedule
+				if (state === PlayerState.PAUSED && player) {
+					player.playVideo();
+				}
+			},
 			onVideoEnd: () => {
 				onVideoEnd?.();
 			},
 			onError: (code) => {
 				console.warn(`YouTube player error: ${code}`);
-				// On error (e.g. video unavailable), skip to next
 				onVideoEnd?.();
 			}
 		});
@@ -51,14 +56,6 @@
 			loadVideo(videoId, startSeconds);
 		}
 	});
-
-	export function pause() {
-		player?.pauseVideo();
-	}
-
-	export function play() {
-		player?.playVideo();
-	}
 
 	export function setVolume(vol: number) {
 		player?.setVolume(vol);
@@ -94,5 +91,6 @@
 		width: 100%;
 		height: 100%;
 		border: none;
+		pointer-events: none;
 	}
 </style>

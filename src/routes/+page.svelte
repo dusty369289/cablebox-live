@@ -20,10 +20,8 @@
 	} from '$lib/stores/channels.svelte.js';
 	import { startClock, stopClock, getCurrentTime } from '$lib/stores/clock.svelte.js';
 	import {
-		getVolume,
 		isMuted,
 		toggleMuted,
-		setVolume,
 		isCrtEnabled,
 		toggleCrt
 	} from '$lib/stores/settings.svelte.js';
@@ -32,7 +30,6 @@
 	let loaded = $state(false);
 	let schedule = $state<ScheduleResult | null>(null);
 	let showGuide = $state(false);
-	let paused = $state(false);
 	let showStatic = $state(false);
 	let tickInterval: ReturnType<typeof setInterval> | null = null;
 	let tvPlayer: TVPlayer | undefined = $state();
@@ -54,16 +51,12 @@
 		if (Math.abs(deltaY) < SWIPE_THRESHOLD) return;
 
 		if (deltaY < 0) {
-			// Swipe up → next channel
 			triggerStatic();
 			channelUp();
-			paused = false;
 			updateSchedule();
 		} else {
-			// Swipe down → previous channel
 			triggerStatic();
 			channelDown();
-			paused = false;
 			updateSchedule();
 		}
 	}
@@ -84,7 +77,6 @@
 	});
 
 	function updateSchedule() {
-		if (paused) return; // Don't update while paused
 		const channel = getCurrentChannel();
 		if (!channel) return;
 		const now = getCurrentTime();
@@ -97,7 +89,6 @@
 	}
 
 	function handleVideoEnd() {
-		paused = false;
 		updateSchedule();
 	}
 
@@ -105,22 +96,9 @@
 		const channels = getChannels();
 		const idx = channels.findIndex((ch) => ch.slug === channel.slug);
 		if (idx >= 0) {
-			paused = false;
 			triggerStatic();
 			switchToChannel(idx);
 			updateSchedule();
-		}
-	}
-
-	function togglePause() {
-		if (paused) {
-			// Resume: snap back to live schedule
-			paused = false;
-			tvPlayer?.play();
-			updateSchedule();
-		} else {
-			paused = true;
-			tvPlayer?.pause();
 		}
 	}
 
@@ -155,7 +133,6 @@
 				event.preventDefault();
 				triggerStatic();
 				channelUp();
-				paused = false;
 				updateSchedule();
 				break;
 			case 'ArrowDown':
@@ -163,12 +140,7 @@
 				event.preventDefault();
 				triggerStatic();
 				channelDown();
-				paused = false;
 				updateSchedule();
-				break;
-			case ' ':
-				event.preventDefault();
-				togglePause();
 				break;
 			case 'f':
 			case 'F':
@@ -212,7 +184,6 @@
 						const num = parseInt(numberBuffer, 10);
 						triggerStatic();
 						switchToChannelByNumber(num);
-						paused = false;
 						updateSchedule();
 						numberBuffer = '';
 					}, 800);
@@ -257,18 +228,12 @@
 					CH {currentChannel.number}
 				{/if}
 			</div>
-			{#if paused}
-				<div class="pause-indicator">PAUSED</div>
-			{/if}
 		</div>
 
 		<div class="controls-bar">
 			<VolumeControl onVolumeChange={handleVolumeChange} onMuteToggle={handleMuteToggle} />
 
 			<div class="control-buttons">
-				<button class="ctrl-btn" onclick={togglePause} title="Pause/Play (Space)">
-					{paused ? '▶' : '⏸'}
-				</button>
 				<button class="ctrl-btn" onclick={toggleFullscreen} title="Fullscreen (F)">
 					⛶
 				</button>
@@ -336,19 +301,6 @@
 		color: #3a3;
 		background: rgba(0, 0, 0, 0.6);
 		padding: 4px 12px;
-	}
-
-	.pause-indicator {
-		font-family: monospace;
-		font-size: 1rem;
-		color: #f33;
-		background: rgba(0, 0, 0, 0.6);
-		padding: 4px 12px;
-		animation: blink 1s step-end infinite;
-	}
-
-	@keyframes blink {
-		50% { opacity: 0; }
 	}
 
 	.controls-bar {
