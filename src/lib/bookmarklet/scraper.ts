@@ -106,6 +106,59 @@ const btnStyle: Partial<CSSStyleDeclaration> = {
 
 // ─── Video Extraction ────────────────────────────────────────────────
 
+/**
+ * Extract video from YouTube's new lockupViewModel format.
+ * Used on signed-in homepage, subscriptions, and potentially other pages.
+ */
+function extractFromLockupViewModel(lvm: any): ScrapedVideo | null {
+	if (!lvm || !lvm.contentId) return null;
+
+	const id = lvm.contentId;
+	const title = lvm.metadata?.lockupMetadataViewModel?.title?.content || '';
+
+	// Duration from thumbnail overlay badges
+	let durationText = '';
+	let duration = 0;
+	const overlays = lvm.contentImage?.thumbnailViewModel?.overlays;
+	if (overlays) {
+		for (const o of overlays) {
+			const badges = o.thumbnailBottomOverlayViewModel?.badges;
+			if (badges) {
+				for (const b of badges) {
+					const text = b.thumbnailBadgeViewModel?.text;
+					if (text && text.includes(':')) {
+						durationText = text;
+						duration = parseDurationText(text);
+					}
+				}
+			}
+		}
+	}
+
+	if (duration < 60) return null;
+
+	// Channel and metadata from metadata rows
+	const rows = lvm.metadata?.lockupMetadataViewModel?.metadata
+		?.contentMetadataViewModel?.metadataRows;
+	let channel = '';
+	let uploadedText = '';
+	let views = '';
+	if (rows) {
+		// First row: channel name
+		channel = rows[0]?.metadataParts?.[0]?.text?.content || '';
+		// Second row: views + date
+		const parts = rows[1]?.metadataParts;
+		if (parts) {
+			views = parts[0]?.text?.content || '';
+			uploadedText = parts[1]?.text?.content || '';
+		}
+	}
+
+	const thumbnail = `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+
+	return { id, title, duration, durationText, thumbnail, channel, channelId: '', uploadedText, views };
+}
+
 function extractFromVideoRenderer(renderer: any): ScrapedVideo | null {
 	if (!renderer || !renderer.videoId) return null;
 
@@ -154,49 +207,105 @@ function extractFromVideoRenderer(renderer: any): ScrapedVideo | null {
 	return { id, title, duration, durationText, thumbnail, channel, channelId, uploadedText, views };
 }
 
-function extractVideosFromDOM(): ScrapedVideo[] {
-	const videos: ScrapedVideo[] = [];
-	const seen = new Set<string>();
+
+// ─── Auto-Scroll with Incremental Extraction ────────────────────────
+//
+// YouTube uses virtual scrolling — elements far from the viewport get
+// removed from the DOM. We must extract videos on every scroll tick
+// and accumulate them, rather than extracting once at the end.
+
+let cancelScroll = false;
+
+/**
+ * Auto-scroll the page, extracting videos incrementally into `collected`.
+ * YouTube's virtual DOM removes off-screen elements, so we grab data
+ * from the DOM on each tick before it disappears.
+ */
+async function autoScrollAndCollect(
+	collected: Map<string, ScrapedVideo>,
+	onProgress: (videoCount: number) => void
+): Promise<void> {
+	cancelScroll = false;
+	let lastDomCount = 0;
+	let staleRounds = 0;
+
+	while (staleRounds < 3 && !cancelScroll) {
+		// Extract from whatever is currently in the DOM
+		collectFromDOM(collected);
+		onProgress(collected.size);
+
+		window.scrollTo(0, document.documentElement.scrollHeight);
+		await sleep(1500);
+		if (cancelScroll) break;
+
+		// Check if new DOM elements appeared (to detect end of content)
+		const currentDomCount = document.querySelectorAll(
+			'ytd-rich-item-renderer, ytd-playlist-video-renderer, ytd-video-renderer, ytd-grid-video-renderer, ytd-rich-grid-media, ytd-compact-video-renderer'
+		).length;
+
+		if (currentDomCount === lastDomCount) staleRounds++;
+		else staleRounds = 0;
+		lastDomCount = currentDomCount;
+	}
+
+	// One final extraction before scrolling back
+	collectFromDOM(collected);
+	onProgress(collected.size);
+	window.scrollTo(0, 0);
+}
+
+/**
+ * Try to find a videoRenderer in a data object.
+ * YouTube nests renderers differently per page type.
+ */
+function findVideoRenderer(data: any): any {
+	if (!data) return null;
+	// Direct videoRenderer (search results, grid items)
+	if (data.videoId) return data;
+	// richItemRenderer > content > videoRenderer (channel/home/subs)
+	if (data.content?.videoRenderer) return data.content.videoRenderer;
+	// videoRenderer directly nested
+	if (data.videoRenderer) return data.videoRenderer;
+	// gridVideoRenderer
+	if (data.gridVideoRenderer) return data.gridVideoRenderer;
+	// playlistVideoRenderer
+	if (data.playlistVideoRenderer) return data.playlistVideoRenderer;
+	return null;
+}
+
+/** Try to extract a ScrapedVideo from an element's .data property. */
+function extractFromElementData(data: any): ScrapedVideo | null {
+	if (!data) return null;
+
+	// New format: lockupViewModel (signed-in homepage, subscriptions)
+	const lvm = data.content?.lockupViewModel;
+	if (lvm) return extractFromLockupViewModel(lvm);
+
+	// Old format: videoRenderer and variants
+	const renderer = findVideoRenderer(data);
+	return extractFromVideoRenderer(renderer);
+}
+
+/** Extract videos from the current DOM and add to the map (deduped by ID). */
+function collectFromDOM(collected: Map<string, ScrapedVideo>) {
 	const selectors = [
 		'ytd-rich-item-renderer', 'ytd-playlist-video-renderer',
-		'ytd-video-renderer', 'ytd-compact-video-renderer', 'ytd-grid-video-renderer'
+		'ytd-video-renderer', 'ytd-compact-video-renderer',
+		'ytd-grid-video-renderer', 'ytd-rich-grid-media'
 	];
 
 	for (const selector of selectors) {
 		for (const elem of document.querySelectorAll(selector)) {
-			const data = (elem as any).data;
-			if (!data) continue;
-			const renderer = data.content?.videoRenderer || data;
-			const video = extractFromVideoRenderer(renderer);
-			if (video && !seen.has(video.id)) {
-				seen.add(video.id);
-				videos.push(video);
+			const video = extractFromElementData((elem as any).data);
+			if (video && !collected.has(video.id)) {
+				collected.set(video.id, video);
 			}
 		}
 	}
-	return videos;
 }
 
-// ─── Auto-Scroll ─────────────────────────────────────────────────────
-
-async function autoScroll(onProgress: (count: number) => void): Promise<void> {
-	let lastCount = 0;
-	let staleRounds = 0;
-
-	while (staleRounds < 3) {
-		window.scrollTo(0, document.documentElement.scrollHeight);
-		await sleep(1500);
-
-		const currentCount = document.querySelectorAll(
-			'ytd-rich-item-renderer, ytd-playlist-video-renderer, ytd-video-renderer, ytd-grid-video-renderer'
-		).length;
-		onProgress(currentCount);
-
-		if (currentCount === lastCount) staleRounds++;
-		else staleRounds = 0;
-		lastCount = currentCount;
-	}
-	window.scrollTo(0, 0);
+function stopScroll() {
+	cancelScroll = true;
 }
 
 // ─── UI (no innerHTML — Trusted Types safe) ──────────────────────────
@@ -380,25 +489,17 @@ function renderVideoItem(v: ScrapedVideo): HTMLElement {
 	}
 
 	const ui = buildPanel();
+	let collected = new Map<string, ScrapedVideo>();
 	let allVideos: ScrapedVideo[] = [];
 	let filteredVideos: ScrapedVideo[] = [];
 
 	ui.closeBtn.onclick = () => ui.panel.remove();
 
-	ui.scanBtn.onclick = async () => {
-		ui.scanBtn.disabled = true;
-		ui.scanBtn.textContent = 'Scrolling...';
-		ui.statusEl.textContent = 'Auto-scrolling to load all videos...';
+	let scanning = false;
 
-		await autoScroll((count) => {
-			ui.statusEl.textContent = `Scrolling... ${count} elements loaded`;
-		});
+	function showResults() {
+		allVideos = [...collected.values()];
 
-		ui.statusEl.textContent = 'Extracting video data...';
-		allVideos = extractVideosFromDOM();
-		ui.statusEl.textContent = `Found ${allVideos.length} videos`;
-
-		// Populate channel filter
 		const channels = [...new Set(allVideos.map((v) => v.channel).filter(Boolean))].sort();
 		while (ui.channelFilterEl.options.length > 1) ui.channelFilterEl.remove(1);
 		for (const ch of channels) {
@@ -416,8 +517,47 @@ function renderVideoItem(v: ScrapedVideo): HTMLElement {
 		ui.actionsEl.style.display = 'flex';
 		ui.scanBtn.textContent = 'Re-scan Page';
 		ui.scanBtn.disabled = false;
+		ui.scanBtn.style.background = btnStyle.background!;
+		ui.scanBtn.style.color = btnStyle.color!;
+		ui.scanBtn.style.borderColor = '#3a3';
 
 		applyFilters();
+	}
+
+	ui.scanBtn.onclick = async () => {
+		if (scanning) {
+			// Stop early — videos already collected incrementally
+			stopScroll();
+			scanning = false;
+			ui.statusEl.textContent = `Stopped — found ${collected.size} videos`;
+			showResults();
+			return;
+		}
+
+		// Clear previous results
+		collected = new Map();
+		allVideos = [];
+		filteredVideos = [];
+		while (ui.videoListEl.firstChild) ui.videoListEl.removeChild(ui.videoListEl.firstChild);
+
+		scanning = true;
+		ui.scanBtn.textContent = 'Stop Scan';
+		ui.scanBtn.style.background = '#3a1a1a';
+		ui.scanBtn.style.color = '#f66';
+		ui.scanBtn.style.borderColor = '#f33';
+		ui.statusEl.textContent = 'Auto-scrolling to load all videos...';
+
+		await autoScrollAndCollect(collected, (videoCount) => {
+			if (!scanning) return;
+			ui.statusEl.textContent = `Scrolling... ${videoCount} videos found (click Stop to finish early)`;
+		});
+
+		// Only finish if not already stopped via button click
+		if (scanning) {
+			scanning = false;
+			ui.statusEl.textContent = `Found ${collected.size} videos`;
+			showResults();
+		}
 	};
 
 	ui.channelFilterEl.onchange = applyFilters;
