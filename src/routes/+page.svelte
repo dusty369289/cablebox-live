@@ -1,22 +1,26 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import TVPlayer from '$lib/components/TVPlayer.svelte';
+	import TVGuide from '$lib/components/TVGuide.svelte';
 	import ChannelBanner from '$lib/components/ChannelBanner.svelte';
 	import { loadDefaultChannels } from '$lib/data/loader.js';
 	import { getScheduleAt } from '$lib/scheduling/scheduler.js';
 	import {
 		setChannels,
 		getCurrentChannel,
+		getCurrentIndex,
 		channelUp,
 		channelDown,
+		switchToChannel,
 		switchToChannelByNumber,
 		getChannels
 	} from '$lib/stores/channels.svelte.js';
 	import { startClock, stopClock, getCurrentTime } from '$lib/stores/clock.svelte.js';
-	import type { ScheduleResult } from '$lib/scheduling/types.js';
+	import type { Channel, ScheduleResult } from '$lib/scheduling/types.js';
 
 	let loaded = $state(false);
 	let schedule = $state<ScheduleResult | null>(null);
+	let showGuide = $state(false);
 	let tickInterval: ReturnType<typeof setInterval> | null = null;
 
 	// Number input buffer for direct channel entry
@@ -47,13 +51,19 @@
 	}
 
 	function handleVideoEnd() {
-		// When a video ends, the schedule will naturally advance on the next tick.
-		// Force an immediate update.
 		updateSchedule();
 	}
 
+	function handleTune(channel: Channel) {
+		const channels = getChannels();
+		const idx = channels.findIndex((ch) => ch.slug === channel.slug);
+		if (idx >= 0) {
+			switchToChannel(idx);
+			updateSchedule();
+		}
+	}
+
 	function handleKeydown(event: KeyboardEvent) {
-		// Ignore if user is typing in an input
 		if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
 			return;
 		}
@@ -71,8 +81,16 @@
 				channelDown();
 				updateSchedule();
 				break;
+			case 'g':
+			case 'G':
+				event.preventDefault();
+				showGuide = !showGuide;
+				break;
+			case 'Escape':
+				event.preventDefault();
+				if (showGuide) showGuide = false;
+				break;
 			default:
-				// Number keys for direct channel entry
 				if (event.key >= '0' && event.key <= '9') {
 					event.preventDefault();
 					numberBuffer += event.key;
@@ -87,8 +105,10 @@
 		}
 	}
 
-	// Derived values for the template
 	let currentChannel = $derived(getCurrentChannel());
+	let currentIndex = $derived(getCurrentIndex());
+	let allChannels = $derived(getChannels());
+	let now = $derived(getCurrentTime());
 	let videoId = $derived(schedule?.video.id ?? '');
 	let startSeconds = $derived(schedule?.offsetSeconds ?? 0);
 	let videoTitle = $derived(schedule?.video.title ?? '');
@@ -108,11 +128,25 @@
 	<div class="tv-container">
 		<TVPlayer {videoId} {startSeconds} onVideoEnd={handleVideoEnd} />
 		<ChannelBanner channel={currentChannel} {videoTitle} />
+
 		<div class="channel-indicator">
 			{#if currentChannel}
 				CH {currentChannel.number}
 			{/if}
 		</div>
+
+		<button class="guide-toggle" onclick={() => (showGuide = !showGuide)}>
+			{showGuide ? 'Hide Guide' : 'Guide (G)'}
+		</button>
+
+		{#if showGuide}
+			<TVGuide
+				channels={allChannels}
+				currentChannelIndex={currentIndex}
+				{now}
+				onTune={handleTune}
+			/>
+		{/if}
 	</div>
 {/if}
 
@@ -151,5 +185,24 @@
 		background: rgba(0, 0, 0, 0.6);
 		padding: 4px 12px;
 		z-index: 10;
+	}
+
+	.guide-toggle {
+		position: absolute;
+		bottom: 20px;
+		right: 20px;
+		background: rgba(0, 0, 0, 0.7);
+		border: 1px solid #3a3;
+		color: #3a3;
+		font-family: monospace;
+		font-size: 0.8rem;
+		padding: 6px 14px;
+		cursor: pointer;
+		z-index: 25;
+		border-radius: 4px;
+	}
+
+	.guide-toggle:hover {
+		background: rgba(51, 170, 51, 0.2);
 	}
 </style>
