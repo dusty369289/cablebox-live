@@ -206,6 +206,7 @@
 	.modal-body {
 		padding: 16px;
 		overflow-y: auto;
+		overflow-x: hidden;
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
@@ -256,6 +257,7 @@
 
 	.json-input {
 		width: 100%;
+		box-sizing: border-box;
 		background: #0a0a0a;
 		border: 1px solid #333;
 		color: #ccc;
