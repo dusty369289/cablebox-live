@@ -1,7 +1,11 @@
 <script lang="ts">
 	import type { Channel } from '$lib/scheduling/types.js';
 	import { deleteUserChannel } from '$lib/data/channel-store.js';
-	import { isDefaultHidden, toggleDefaultChannel } from '$lib/stores/settings.svelte.js';
+	import {
+		isDefaultHidden, toggleDefaultChannel,
+		isCrtEnabled, toggleCrt,
+		getTheme, setTheme, THEMES, type Theme
+	} from '$lib/stores/settings.svelte.js';
 
 	type Props = {
 		channels: Channel[];
@@ -11,14 +15,11 @@
 
 	let { channels, onChanged, onClose }: Props = $props();
 
+	let activeTab = $state<'channels' | 'appearance'>('channels');
 	let confirmDelete = $state<string | null>(null);
 
 	function isDefault(ch: Channel): boolean {
 		return ch.sources.some((s) => s.type === 'default');
-	}
-
-	function isHidden(ch: Channel): boolean {
-		return isDefaultHidden(ch.slug);
 	}
 
 	function handleToggleDefault(slug: string) {
@@ -45,6 +46,8 @@
 
 	let defaultChannels = $derived(channels.filter(isDefault));
 	let userChannels = $derived(channels.filter((ch) => !isDefault(ch)));
+	let crt = $derived(isCrtEnabled());
+	let currentTheme = $derived(getTheme());
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
@@ -52,59 +55,112 @@
 	<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 	<div class="modal" role="dialog" tabindex="-1" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
 		<div class="modal-header">
-			<span class="modal-title">CHANNEL MANAGER</span>
+			<span class="modal-title">SETTINGS</span>
 			<button class="modal-close" onclick={onClose}>&times;</button>
 		</div>
 
-		<div class="modal-body">
-			{#if defaultChannels.length > 0}
-				<div class="section">
-					<h3 class="section-title">Default Channels</h3>
-					<p class="section-desc">Toggle default channels on or off.</p>
-					{#each defaultChannels as ch (ch.slug)}
-						<div class="channel-row">
-							<label class="toggle-row">
-								<input
-									type="checkbox"
-									checked={!isHidden(ch)}
-									onchange={() => handleToggleDefault(ch.slug)}
-								/>
-								<span class="ch-num">{ch.number}</span>
-								<span class="ch-name">{ch.name}</span>
-								<span class="ch-meta">{videoCount(ch)} videos &middot; {formatDuration(ch)}</span>
-							</label>
-						</div>
-					{/each}
-				</div>
-			{/if}
+		<div class="tabs">
+			<button class="tab" class:active={activeTab === 'channels'} onclick={() => (activeTab = 'channels')}>
+				Channels
+			</button>
+			<button class="tab" class:active={activeTab === 'appearance'} onclick={() => (activeTab = 'appearance')}>
+				Appearance
+			</button>
+		</div>
 
-			{#if userChannels.length > 0}
+		<div class="modal-body">
+			{#if activeTab === 'channels'}
+				<!-- Channels Tab -->
+				{#if defaultChannels.length > 0}
+					<div class="section">
+						<h3 class="section-title">Default Channels</h3>
+						{#each defaultChannels as ch (ch.slug)}
+							<div class="channel-row">
+								<label class="toggle-row">
+									<input
+										type="checkbox"
+										checked={!isDefaultHidden(ch.slug)}
+										onchange={() => handleToggleDefault(ch.slug)}
+									/>
+									<span class="ch-num">{ch.number}</span>
+									<span class="ch-name">{ch.name}</span>
+									<span class="ch-meta">{videoCount(ch)} &middot; {formatDuration(ch)}</span>
+								</label>
+							</div>
+						{/each}
+					</div>
+				{/if}
+
 				<div class="section">
 					<h3 class="section-title">Imported Channels</h3>
-					{#each userChannels as ch (ch.slug)}
-						<div class="channel-row">
-							<div class="channel-info">
-								<span class="ch-num">{ch.number}</span>
-								<span class="ch-name">{ch.name}</span>
-								<span class="ch-meta">{videoCount(ch)} videos &middot; {formatDuration(ch)}</span>
-							</div>
-							{#if confirmDelete === ch.slug}
-								<div class="confirm-bar">
-									<span class="confirm-text">Delete?</span>
-									<button class="btn-confirm" onclick={() => handleDelete(ch.slug)}>Yes</button>
-									<button class="btn-cancel" onclick={() => (confirmDelete = null)}>No</button>
+					{#if userChannels.length > 0}
+						{#each userChannels as ch (ch.slug)}
+							<div class="channel-row">
+								<div class="channel-info">
+									<span class="ch-num">{ch.number}</span>
+									<span class="ch-name">{ch.name}</span>
+									<span class="ch-meta">{videoCount(ch)} &middot; {formatDuration(ch)}</span>
 								</div>
-							{:else}
-								<button class="btn-delete" onclick={() => (confirmDelete = ch.slug)} title="Delete channel">
-									&times;
-								</button>
-							{/if}
-						</div>
-					{/each}
+								{#if confirmDelete === ch.slug}
+									<div class="confirm-bar">
+										<span class="confirm-text">Delete?</span>
+										<button class="btn-confirm" onclick={() => handleDelete(ch.slug)}>Yes</button>
+										<button class="btn-cancel" onclick={() => (confirmDelete = null)}>No</button>
+									</div>
+								{:else}
+									<button class="btn-delete" onclick={() => (confirmDelete = ch.slug)} title="Delete channel">
+										&times;
+									</button>
+								{/if}
+							</div>
+						{/each}
+					{:else}
+						<div class="empty">No imported channels. Press <kbd>I</kbd> to import from YouTube.</div>
+					{/if}
 				</div>
+
 			{:else}
-				<div class="empty">
-					No imported channels yet. Use the <strong>+</strong> button or press <kbd>I</kbd> to import.
+				<!-- Appearance Tab -->
+				<div class="section">
+					<h3 class="section-title">Theme</h3>
+					<div class="theme-grid">
+						{#each THEMES as theme (theme.id)}
+							<button
+								class="theme-option"
+								class:selected={currentTheme === theme.id}
+								onclick={() => setTheme(theme.id)}
+							>
+								<span class="theme-preview" data-theme={theme.id}></span>
+								<span class="theme-name">{theme.label}</span>
+							</button>
+						{/each}
+					</div>
+				</div>
+
+				<div class="section">
+					<h3 class="section-title">Effects</h3>
+					<label class="setting-row">
+						<input type="checkbox" checked={crt} onchange={toggleCrt} />
+						<div class="setting-info">
+							<span class="setting-label">CRT Scan Lines</span>
+							<span class="setting-desc">Retro TV scan line overlay and vignette effect</span>
+						</div>
+					</label>
+				</div>
+
+				<div class="section">
+					<h3 class="section-title">Keyboard Shortcuts</h3>
+					<div class="shortcuts">
+						<div class="shortcut"><kbd>G</kbd> Guide</div>
+						<div class="shortcut"><kbd>I</kbd> Import</div>
+						<div class="shortcut"><kbd>E</kbd> Settings</div>
+						<div class="shortcut"><kbd>F</kbd> Fullscreen</div>
+						<div class="shortcut"><kbd>M</kbd> Mute</div>
+						<div class="shortcut"><kbd>C</kbd> CRT Toggle</div>
+						<div class="shortcut"><kbd>T</kbd> Cycle Theme</div>
+						<div class="shortcut"><kbd>Up/Down</kbd> Channel</div>
+						<div class="shortcut"><kbd>0-9</kbd> Direct Tune</div>
+					</div>
 				</div>
 			{/if}
 		</div>
@@ -123,7 +179,7 @@
 	}
 
 	.modal {
-		width: 500px;
+		width: 480px;
 		max-width: 90vw;
 		max-height: 80vh;
 		background: var(--color-surface);
@@ -140,7 +196,7 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: 12px 16px;
+		padding: 10px 16px;
 		background: var(--color-bg);
 		border-bottom: 1px solid var(--color-border);
 	}
@@ -153,6 +209,30 @@
 	}
 	.modal-close:hover { color: var(--color-danger); }
 
+	/* Tabs */
+	.tabs {
+		display: flex;
+		border-bottom: 1px solid var(--color-border);
+		background: var(--color-bg);
+	}
+
+	.tab {
+		flex: 1;
+		background: none;
+		border: none;
+		border-bottom: 2px solid transparent;
+		color: var(--color-text-dim);
+		font-family: var(--font-family);
+		font-size: 0.85rem;
+		padding: 8px 12px;
+		cursor: pointer;
+	}
+	.tab:hover { color: var(--color-text); background: var(--color-surface-hover); }
+	.tab.active {
+		color: var(--color-primary);
+		border-bottom-color: var(--color-primary);
+	}
+
 	.modal-body {
 		padding: 12px 16px;
 		overflow-y: auto;
@@ -163,22 +243,17 @@
 
 	.section-title {
 		color: var(--color-primary);
-		font-size: 0.9rem;
-		margin: 0 0 4px;
+		font-size: 0.85rem;
+		margin: 0 0 8px;
 		text-shadow: var(--text-glow);
 	}
 
-	.section-desc {
-		color: var(--color-text-dim);
-		font-size: 0.75rem;
-		margin: 0 0 8px;
-	}
-
+	/* Channel rows */
 	.channel-row {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 6px 8px;
+		padding: 5px 8px;
 		border-bottom: 1px solid var(--color-border);
 		gap: 8px;
 	}
@@ -192,99 +267,87 @@
 		cursor: pointer;
 		flex: 1;
 	}
+	.toggle-row input[type=checkbox] { accent-color: var(--color-primary); flex-shrink: 0; }
 
-	.toggle-row input[type=checkbox] {
-		accent-color: var(--color-primary);
-		flex-shrink: 0;
-	}
-
-	.channel-info {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		flex: 1;
-		overflow: hidden;
-	}
-
-	.ch-num {
-		color: var(--color-primary);
-		font-weight: bold;
-		min-width: 28px;
-		font-size: 0.85rem;
-	}
-
-	.ch-name {
-		font-size: 0.85rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.ch-meta {
-		color: var(--color-text-dim);
-		font-size: 0.7rem;
-		white-space: nowrap;
-		margin-left: auto;
-	}
+	.channel-info { display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden; }
+	.ch-num { color: var(--color-primary); font-weight: bold; min-width: 28px; font-size: 0.85rem; }
+	.ch-name { font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.ch-meta { color: var(--color-text-dim); font-size: 0.7rem; white-space: nowrap; margin-left: auto; }
 
 	.btn-delete {
-		background: none;
-		border: 1px solid transparent;
-		color: var(--color-text-dim);
-		font-size: 1.2rem;
-		cursor: pointer;
-		padding: 2px 6px;
-		border-radius: var(--border-radius-sm);
-		line-height: 1;
-		flex-shrink: 0;
+		background: none; border: 1px solid transparent; color: var(--color-text-dim);
+		font-size: 1.2rem; cursor: pointer; padding: 2px 6px;
+		border-radius: var(--border-radius-sm); line-height: 1; flex-shrink: 0;
 	}
-	.btn-delete:hover {
-		color: var(--color-danger);
-		border-color: var(--color-danger);
-	}
+	.btn-delete:hover { color: var(--color-danger); border-color: var(--color-danger); }
 
-	.confirm-bar {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		flex-shrink: 0;
-	}
-
-	.confirm-text {
-		color: var(--color-danger);
-		font-size: 0.8rem;
-		font-weight: bold;
-	}
-
+	.confirm-bar { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+	.confirm-text { color: var(--color-danger); font-size: 0.8rem; font-weight: bold; }
 	.btn-confirm, .btn-cancel {
-		font-family: var(--font-family);
-		font-size: 0.75rem;
-		padding: 3px 10px;
-		border-radius: var(--border-radius-sm);
-		cursor: pointer;
-		border: 1px solid;
+		font-family: var(--font-family); font-size: 0.75rem; padding: 3px 10px;
+		border-radius: var(--border-radius-sm); cursor: pointer; border: 1px solid;
 	}
-
-	.btn-confirm {
-		background: var(--color-danger);
-		border-color: var(--color-danger);
-		color: #000;
-	}
+	.btn-confirm { background: var(--color-danger); border-color: var(--color-danger); color: #000; }
 	.btn-confirm:hover { opacity: 0.8; }
-
-	.btn-cancel {
-		background: var(--color-surface);
-		border-color: var(--color-border);
-		color: var(--color-text);
-	}
+	.btn-cancel { background: var(--color-surface); border-color: var(--color-border); color: var(--color-text); }
 	.btn-cancel:hover { background: var(--color-surface-hover); }
 
-	.empty {
-		color: var(--color-text-dim);
-		font-size: 0.85rem;
-		text-align: center;
-		padding: 20px 0;
+	.empty { color: var(--color-text-dim); font-size: 0.85rem; text-align: center; padding: 16px 0; }
+
+	/* Theme grid */
+	.theme-grid {
+		display: flex;
+		gap: 8px;
 	}
+
+	.theme-option {
+		flex: 1;
+		background: var(--color-bg);
+		border: 2px solid var(--color-border);
+		border-radius: var(--border-radius-sm);
+		padding: 10px 8px;
+		cursor: pointer;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+		font-family: var(--font-family);
+	}
+	.theme-option:hover { border-color: var(--color-text-dim); }
+	.theme-option.selected { border-color: var(--color-primary); }
+
+	.theme-preview {
+		width: 100%;
+		height: 24px;
+		border-radius: 2px;
+	}
+	.theme-preview[data-theme='cable-90s'] { background: linear-gradient(#000033, #000055); border: 1px solid #0000aa; }
+	.theme-preview[data-theme='phosphor'] { background: linear-gradient(#000, #0a1a0a); border: 1px solid #1a3a1a; }
+	.theme-preview[data-theme='material'] { background: linear-gradient(#141218, #1d1b20); border: 1px solid #49454f; }
+
+	.theme-name { font-size: 0.75rem; color: var(--color-text); }
+	.theme-option.selected .theme-name { color: var(--color-primary); }
+
+	/* Settings rows */
+	.setting-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 6px 0;
+		cursor: pointer;
+	}
+	.setting-row input[type=checkbox] { accent-color: var(--color-primary); flex-shrink: 0; }
+	.setting-info { display: flex; flex-direction: column; }
+	.setting-label { font-size: 0.85rem; }
+	.setting-desc { font-size: 0.7rem; color: var(--color-text-dim); margin-top: 2px; }
+
+	/* Shortcuts */
+	.shortcuts {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 4px 16px;
+	}
+	.shortcut { font-size: 0.8rem; color: var(--color-text-dim); }
 
 	kbd {
 		background: var(--color-surface-active);

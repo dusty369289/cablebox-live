@@ -8,15 +8,11 @@
 		currentChannelIndex: number;
 		now: number;
 		onTune: (channel: Channel) => void;
-		onManage: () => void;
+		onSettings: () => void;
 		onImport: () => void;
-		onToggleCrt: () => void;
-		onCycleTheme: () => void;
-		crtEnabled: boolean;
-		themeLabel: string;
 	};
 
-	let { channels, currentChannelIndex, now, onTune, onManage, onImport, onToggleCrt, onCycleTheme, crtEnabled, themeLabel }: Props = $props();
+	let { channels, currentChannelIndex, now, onTune, onSettings, onImport }: Props = $props();
 
 	// Guide shows a 2-hour window centered around now (30min past, 90min future)
 	const LOOKBACK = 30 * 60; // 30 minutes
@@ -65,10 +61,8 @@
 		<div class="header-label">
 			<span class="header-title">GUIDE</span>
 			<div class="header-actions">
-				<button class="header-btn" onclick={onManage} title="Manage Channels (E)">&#9881;</button>
-				<button class="header-btn" onclick={onImport} title="Import Channels (I)">+</button>
-				<button class="header-btn" class:active={crtEnabled} onclick={onToggleCrt} title="CRT Effect (C)">CRT</button>
-				<button class="header-btn" onclick={onCycleTheme} title="Theme (T)">{themeLabel}</button>
+				<button class="header-btn" onclick={onSettings} title="Settings (E)">&#9881;</button>
+				<button class="header-btn" onclick={onImport} title="Import (I)">+</button>
 			</div>
 		</div>
 		<div class="time-axis">
@@ -178,9 +172,6 @@
 		color: var(--color-primary);
 		border-color: var(--color-primary);
 		background: var(--color-surface-hover);
-	}
-	.header-btn.active {
-		color: var(--color-primary);
 	}
 
 	.time-axis {

@@ -272,7 +272,6 @@
 	let startSeconds = $derived(schedule?.offsetSeconds ?? 0);
 	let videoTitle = $derived(schedule?.video.title ?? '');
 	let crtEnabled = $derived(isCrtEnabled());
-	let themeLabel = $derived(THEMES.find(t => t.id === getTheme())?.label ?? 'Theme');
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -359,12 +358,8 @@
 				currentChannelIndex={currentIndex}
 				{now}
 				onTune={handleTune}
-				onManage={() => (showManager = true)}
+				onSettings={() => (showManager = true)}
 				onImport={() => (showImport = true)}
-				onToggleCrt={toggleCrt}
-				onCycleTheme={cycleTheme}
-				{crtEnabled}
-				{themeLabel}
 			/>
 		{/if}
 	</div>
