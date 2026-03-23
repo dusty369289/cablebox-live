@@ -50,30 +50,6 @@
 	let numberBuffer = '';
 	let numberTimeout: ReturnType<typeof setTimeout> | null = null;
 
-	// Touch swipe handling
-	let touchStartY = 0;
-	const SWIPE_THRESHOLD = 50;
-
-	function handleTouchStart(e: TouchEvent) {
-		touchStartY = e.touches[0].clientY;
-	}
-
-	function handleTouchEnd(e: TouchEvent) {
-		const deltaY = e.changedTouches[0].clientY - touchStartY;
-		if (Math.abs(deltaY) < SWIPE_THRESHOLD) return;
-		e.preventDefault();
-
-		if (deltaY < 0) {
-			triggerStatic();
-			channelUp();
-			updateSchedule();
-		} else {
-			triggerStatic();
-			channelDown();
-			updateSchedule();
-		}
-	}
-
 	async function loadAllChannels() {
 		const defaults = await loadDefaultChannels();
 		let userChannels: Channel[] = [];
@@ -302,8 +278,7 @@
 		</div>
 	</button>
 {:else}
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="tv-container" ontouchstart={handleTouchStart} ontouchend={handleTouchEnd}>
+	<div class="tv-container">
 		<TVPlayer
 			bind:this={tvPlayer}
 			{videoId}
