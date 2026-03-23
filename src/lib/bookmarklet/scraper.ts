@@ -345,6 +345,7 @@ function buildPanel(): {
 	summaryEl: HTMLElement;
 	channelFilterEl: HTMLSelectElement;
 	minDurEl: HTMLInputElement;
+	maxDurEl: HTMLInputElement;
 	maxCountEl: HTMLInputElement;
 	groupingEl: HTMLSelectElement;
 	channelNameEl: HTMLInputElement;
@@ -395,11 +396,14 @@ function buildPanel(): {
 		display: 'none', flexDirection: 'column', gap: '8px'
 	});
 
-	// Min duration row
-	const durRow = el('div', { display: 'flex', gap: '8px', alignItems: 'center', fontSize: '12px' });
-	durRow.appendChild(el('label', { minWidth: '70px', color: '#888' }, 'Min duration'));
-	const minDurEl = input('number', inputStyle, { value: '60', min: '0', step: '30' });
+	// Duration range row
+	const durRow = el('div', { display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px' });
+	durRow.appendChild(el('label', { minWidth: '50px', color: '#888' }, 'Duration'));
+	const minDurEl = input('number', { ...inputStyle, width: '60px', flex: 'none' }, { value: '90', min: '0', step: '30', placeholder: 'min' });
 	durRow.appendChild(minDurEl);
+	durRow.appendChild(el('span', { color: '#666', fontSize: '11px' }, '–'));
+	const maxDurEl = input('number', { ...inputStyle, width: '60px', flex: 'none' }, { value: '', min: '0', step: '30', placeholder: 'no max' });
+	durRow.appendChild(maxDurEl);
 	durRow.appendChild(el('span', { color: '#666', fontSize: '11px' }, 'sec'));
 	filtersEl.appendChild(durRow);
 
@@ -469,7 +473,7 @@ function buildPanel(): {
 
 	return {
 		panel, statusEl, scanBtn, filtersEl, videoListEl, actionsEl,
-		summaryEl, channelFilterEl, minDurEl, maxCountEl, groupingEl,
+		summaryEl, channelFilterEl, minDurEl, maxDurEl, maxCountEl, groupingEl,
 		channelNameEl, nameRowEl, exportBtn, selectAllBtn, selectNoneBtn, closeBtn
 	};
 }
@@ -587,6 +591,7 @@ function renderVideoItem(v: ScrapedVideo): HTMLElement {
 
 	ui.channelFilterEl.onchange = applyFilters;
 	ui.minDurEl.oninput = applyFilters;
+	ui.maxDurEl.oninput = applyFilters;
 	ui.maxCountEl.oninput = applyFilters;
 
 	ui.selectAllBtn.onclick = () => {
@@ -648,11 +653,14 @@ function renderVideoItem(v: ScrapedVideo): HTMLElement {
 	function applyFilters() {
 		const channelFilter = ui.channelFilterEl.value;
 		const minDur = parseInt(ui.minDurEl.value, 10) || 0;
+		const maxDurVal = ui.maxDurEl.value.trim();
+		const maxDur = maxDurVal ? parseInt(maxDurVal, 10) : 0; // 0 = no max
 		const maxCount = parseInt(ui.maxCountEl.value, 10) || 0;
 
 		filteredVideos = allVideos.filter((v) => {
 			if (channelFilter && v.channel !== channelFilter) return false;
 			if (v.duration < minDur) return false;
+			if (maxDur > 0 && v.duration > maxDur) return false;
 			return true;
 		});
 
