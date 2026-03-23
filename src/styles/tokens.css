@@ -28,7 +28,9 @@
 	--font-family: 'VT323', 'Courier New', monospace;
 	--border-radius: 0px;
 	--border-radius-sm: 0px;
-	--guide-row-height: 38px;
+	--guide-row-height: 42px;
+	--guide-font-size: 1.1rem;
+	--guide-font-size-sm: 0.95rem;
 	--crt-visible: 1;
 	--text-glow: 0 0 4px rgba(0, 255, 255, 0.5);
 }
@@ -63,6 +65,8 @@
 	--border-radius: 0px;
 	--border-radius-sm: 0px;
 	--guide-row-height: 40px;
+	--guide-font-size: 0.9rem;
+	--guide-font-size-sm: 0.8rem;
 	--crt-visible: 1;
 	--text-glow: none;
 }
@@ -97,6 +101,8 @@
 	--border-radius: 12px;
 	--border-radius-sm: 4px;
 	--guide-row-height: 48px;
+	--guide-font-size: 0.9rem;
+	--guide-font-size-sm: 0.8rem;
 	--crt-visible: 0;
 	--text-glow: none;
 }

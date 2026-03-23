@@ -137,7 +137,7 @@
 	.header-title {
 		color: var(--color-primary);
 		font-weight: bold;
-		font-size: 0.8rem;
+		font-size: var(--guide-font-size);
 		text-shadow: var(--text-glow);
 		white-space: nowrap;
 	}
@@ -148,7 +148,7 @@
 		border: 1px solid var(--color-border);
 		color: var(--color-primary);
 		font-family: var(--font-family);
-		font-size: 0.7rem;
+		font-size: var(--guide-font-size-sm);
 		cursor: pointer;
 		padding: 3px 8px;
 		border-radius: var(--border-radius-sm);
@@ -172,7 +172,7 @@
 		position: absolute;
 		top: 8px;
 		color: var(--color-text-dim);
-		font-size: 0.7rem;
+		font-size: var(--guide-font-size-sm);
 		transform: translateX(-50%);
 		white-space: nowrap;
 	}

@@ -101,7 +101,7 @@
 		background: var(--color-surface);
 		border-right: 2px solid var(--color-border);
 		color: var(--color-text);
-		font-size: 0.8rem;
+		font-size: var(--guide-font-size);
 		text-align: left;
 	}
 
@@ -132,7 +132,7 @@
 		border: 1px solid var(--color-border);
 		border-radius: var(--border-radius-sm);
 		color: var(--color-text-dim);
-		font-size: 0.7rem;
+		font-size: var(--guide-font-size-sm);
 		padding: 0 6px;
 		cursor: pointer;
 		overflow: hidden;
@@ -184,7 +184,7 @@
 			flex: 1;
 			padding: 0 10px;
 			color: var(--color-text-dim);
-			font-size: 0.75rem;
+			font-size: var(--guide-font-size-sm);
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
