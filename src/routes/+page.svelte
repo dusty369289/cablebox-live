@@ -28,6 +28,7 @@
 	import type { Channel, ScheduleResult } from '$lib/scheduling/types.js';
 
 	let loaded = $state(false);
+	let started = $state(false); // User must interact before autoplay works
 	let schedule = $state<ScheduleResult | null>(null);
 	let showGuide = $state(false);
 	let showStatic = $state(false);
@@ -66,10 +67,13 @@
 		setChannels(channels);
 		startClock();
 		loaded = true;
-
-		tickInterval = setInterval(updateSchedule, 1000);
 		updateSchedule();
 	});
+
+	function start() {
+		started = true;
+		tickInterval = setInterval(updateSchedule, 1000);
+	}
 
 	onDestroy(() => {
 		stopClock();
@@ -211,6 +215,18 @@
 	<div class="loading">
 		<p>Loading channels...</p>
 	</div>
+{:else if !started}
+	<button class="splash" onclick={start}>
+		<div class="splash-content">
+			<div class="splash-title">CHANNEL SURFER</div>
+			<div class="splash-subtitle">Press anywhere to start</div>
+			<div class="splash-hint">
+				{#if currentChannel}
+					{allChannels.length} channels ready
+				{/if}
+			</div>
+		</div>
+	</button>
 {:else}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="tv-container" ontouchstart={handleTouchStart} ontouchend={handleTouchEnd}>
@@ -277,6 +293,47 @@
 		font-family: monospace;
 		font-size: 1.5rem;
 		background: #000;
+	}
+
+	.splash {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100vw;
+		height: 100vh;
+		background: #000;
+		border: none;
+		cursor: pointer;
+		padding: 0;
+	}
+
+	.splash-content {
+		text-align: center;
+		font-family: monospace;
+	}
+
+	.splash-title {
+		font-size: 3rem;
+		font-weight: bold;
+		color: #3a3;
+		letter-spacing: 0.2em;
+		margin-bottom: 20px;
+	}
+
+	.splash-subtitle {
+		font-size: 1.2rem;
+		color: #666;
+		animation: blink 1.5s step-end infinite;
+	}
+
+	.splash-hint {
+		font-size: 0.8rem;
+		color: #444;
+		margin-top: 16px;
+	}
+
+	@keyframes blink {
+		50% { opacity: 0; }
 	}
 
 	.tv-container {
