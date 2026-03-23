@@ -1,0 +1,31 @@
+name: Refresh channel data
+
+on:
+  schedule:
+    # TESTING: every 10 minutes. Change to '0 3 * * *' for 3am GMT daily
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Build channel data
+        run: npm run build:channels
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+
+      - name: Update gist
+        run: |
+          gh gist edit 5ec22d2a61f18d920b9c8c4d19a31303 \
+            --filename channels.json \
+            static/data/channels.json
+        env:
+          GH_TOKEN: ${{ secrets.GIST_TOKEN }}
