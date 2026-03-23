@@ -63,7 +63,6 @@ export function toggleCrt() { settings.crtEnabled = !settings.crtEnabled; saveSe
 export function getTheme(): Theme { return settings.theme; }
 export function setTheme(theme: Theme) {
 	settings.theme = theme;
-	settings.crtEnabled = theme !== 'material'; // Material disables CRT by default
 	saveSettings(settings);
 	applyTheme(theme);
 }
