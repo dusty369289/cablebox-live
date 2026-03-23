@@ -51,11 +51,12 @@
 		display: flex;
 		align-items: center;
 		gap: 16px;
-		background: rgba(0, 0, 0, 0.85);
-		border: 2px solid #3a3;
+		background: var(--color-overlay-bg);
+		border: 2px solid var(--color-primary);
+		border-radius: var(--border-radius);
 		padding: 12px 20px;
-		font-family: monospace;
-		color: #fff;
+		font-family: var(--font-family);
+		color: var(--color-text-bright);
 		z-index: 10;
 		animation: slide-in 0.3s ease-out;
 	}
@@ -63,9 +64,10 @@
 	.channel-number {
 		font-size: 2.5rem;
 		font-weight: bold;
-		color: #3a3;
+		color: var(--color-primary);
 		min-width: 60px;
 		text-align: center;
+		text-shadow: var(--text-glow);
 	}
 
 	.channel-name {
@@ -75,7 +77,7 @@
 
 	.video-title {
 		font-size: 0.9rem;
-		color: #ccc;
+		color: var(--color-text);
 		margin-top: 2px;
 		max-width: 400px;
 		overflow: hidden;
@@ -85,7 +87,7 @@
 
 	.channel-category {
 		font-size: 0.75rem;
-		color: #888;
+		color: var(--color-text-dim);
 		text-transform: uppercase;
 		margin-top: 4px;
 	}

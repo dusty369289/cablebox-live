@@ -92,13 +92,14 @@
 		left: 0;
 		right: 0;
 		max-height: 50vh;
-		background: rgba(0, 10, 0, 0.95);
-		border-top: 2px solid #3a3;
-		font-family: monospace;
+		background: var(--color-guide-bg);
+		border-top: 2px solid var(--color-primary);
+		font-family: var(--font-family);
 		z-index: 20;
 		display: flex;
 		flex-direction: column;
 		animation: slide-up 0.3s ease-out;
+		border-radius: var(--border-radius) var(--border-radius) 0 0;
 	}
 
 	@keyframes slide-up {
@@ -112,7 +113,7 @@
 
 	.guide-header {
 		display: flex;
-		border-bottom: 2px solid #1a3a1a;
+		border-bottom: 2px solid var(--color-border);
 		flex-shrink: 0;
 	}
 
@@ -120,11 +121,12 @@
 		flex-shrink: 0;
 		width: 160px;
 		padding: 8px 10px;
-		color: #3a3;
+		color: var(--color-primary);
 		font-weight: bold;
 		font-size: 0.8rem;
-		border-right: 2px solid #1a3a1a;
-		background: #0a1a0a;
+		border-right: 2px solid var(--color-border);
+		background: var(--color-surface);
+		text-shadow: var(--text-glow);
 	}
 
 	.time-axis {
@@ -137,7 +139,7 @@
 	.time-marker {
 		position: absolute;
 		top: 8px;
-		color: #666;
+		color: var(--color-text-dim);
 		font-size: 0.7rem;
 		transform: translateX(-50%);
 		white-space: nowrap;
@@ -148,7 +150,7 @@
 		top: 0;
 		bottom: 0;
 		width: 2px;
-		background: #f33;
+		background: var(--color-now-line);
 		z-index: 1;
 	}
 
@@ -163,11 +165,11 @@
 	}
 
 	.guide-body::-webkit-scrollbar-track {
-		background: #0a1a0a;
+		background: var(--color-surface);
 	}
 
 	.guide-body::-webkit-scrollbar-thumb {
-		background: #1a3a1a;
+		background: var(--color-border);
 		border-radius: 4px;
 	}
 

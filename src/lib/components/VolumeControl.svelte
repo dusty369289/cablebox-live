@@ -54,7 +54,7 @@
 	.mute-btn {
 		background: none;
 		border: none;
-		color: #3a3;
+		color: var(--color-primary);
 		cursor: pointer;
 		padding: 2px;
 		font-size: 1.2rem;
@@ -62,7 +62,7 @@
 	}
 
 	.mute-btn:hover {
-		color: #5c5;
+		color: var(--color-primary-bright);
 	}
 
 	.icon {
@@ -75,7 +75,7 @@
 		width: 80px;
 		height: 4px;
 		appearance: none;
-		background: #1a3a1a;
+		background: var(--color-border);
 		border-radius: 2px;
 		outline: none;
 		cursor: pointer;
@@ -85,7 +85,7 @@
 		appearance: none;
 		width: 12px;
 		height: 12px;
-		background: #3a3;
+		background: var(--color-primary);
 		border-radius: 50%;
 		cursor: pointer;
 	}

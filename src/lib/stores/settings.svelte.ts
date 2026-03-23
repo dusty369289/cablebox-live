@@ -4,16 +4,26 @@
 
 const STORAGE_KEY = 'cablebox-settings';
 
+export type Theme = 'crt-green' | 'cable-90s' | 'material';
+
+export const THEMES: { id: Theme; label: string }[] = [
+	{ id: 'crt-green', label: 'CRT Green' },
+	{ id: 'cable-90s', label: '90s Cable' },
+	{ id: 'material', label: 'Material' }
+];
+
 type Settings = {
 	volume: number;
 	muted: boolean;
 	crtEnabled: boolean;
+	theme: Theme;
 };
 
 const defaults: Settings = {
 	volume: 80,
 	muted: false,
-	crtEnabled: true
+	crtEnabled: true,
+	theme: 'crt-green'
 };
 
 function loadSettings(): Settings {
@@ -34,39 +44,36 @@ function saveSettings(s: Settings) {
 
 let settings = $state<Settings>(loadSettings());
 
-export function getVolume(): number {
-	return settings.volume;
-}
-
+export function getVolume(): number { return settings.volume; }
 export function setVolume(vol: number) {
 	settings.volume = Math.max(0, Math.min(100, vol));
 	saveSettings(settings);
 }
 
-export function isMuted(): boolean {
-	return settings.muted;
-}
+export function isMuted(): boolean { return settings.muted; }
+export function setMuted(muted: boolean) { settings.muted = muted; saveSettings(settings); }
+export function toggleMuted() { settings.muted = !settings.muted; saveSettings(settings); }
 
-export function setMuted(muted: boolean) {
-	settings.muted = muted;
+export function isCrtEnabled(): boolean { return settings.crtEnabled; }
+export function setCrtEnabled(enabled: boolean) { settings.crtEnabled = enabled; saveSettings(settings); }
+export function toggleCrt() { settings.crtEnabled = !settings.crtEnabled; saveSettings(settings); }
+
+export function getTheme(): Theme { return settings.theme; }
+export function setTheme(theme: Theme) {
+	settings.theme = theme;
+	settings.crtEnabled = theme !== 'material'; // Material disables CRT by default
 	saveSettings(settings);
+	applyTheme(theme);
 }
 
-export function toggleMuted() {
-	settings.muted = !settings.muted;
-	saveSettings(settings);
+export function cycleTheme() {
+	const idx = THEMES.findIndex((t) => t.id === settings.theme);
+	const next = THEMES[(idx + 1) % THEMES.length];
+	setTheme(next.id);
 }
 
-export function isCrtEnabled(): boolean {
-	return settings.crtEnabled;
-}
-
-export function setCrtEnabled(enabled: boolean) {
-	settings.crtEnabled = enabled;
-	saveSettings(settings);
-}
-
-export function toggleCrt() {
-	settings.crtEnabled = !settings.crtEnabled;
-	saveSettings(settings);
+/** Apply theme to the document root. Call on init and on change. */
+export function applyTheme(theme?: Theme) {
+	if (typeof document === 'undefined') return;
+	document.documentElement.dataset.theme = theme || settings.theme;
 }

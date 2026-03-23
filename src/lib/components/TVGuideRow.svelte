@@ -51,43 +51,44 @@
 <style>
 	.guide-row {
 		display: flex;
-		height: 40px;
+		height: var(--guide-row-height);
 		border: none;
-		border-bottom: 1px solid #1a3a1a;
+		border-bottom: 1px solid var(--color-border);
 		background: transparent;
 		width: 100%;
 		cursor: pointer;
 		padding: 0;
+		font-family: var(--font-family);
 	}
 
 	.guide-row:hover {
-		background: rgba(51, 170, 51, 0.08);
+		background: var(--color-surface-hover);
 	}
 
 	.guide-row.active {
-		background: rgba(51, 170, 51, 0.25);
-		border-left: 3px solid #3a3;
+		background: var(--color-guide-active-row);
+		border-left: 3px solid var(--color-primary);
 	}
 
 	.guide-row.active .channel-label {
-		background: #0f2a0f;
-		color: #fff;
+		background: var(--color-surface-active);
+		color: var(--color-text-bright);
 	}
 
 	.guide-row.active .channel-num {
-		color: #5c5;
+		color: var(--color-primary-bright);
 	}
 
 	.guide-row.active .program-block {
-		background: #153515;
-		border-color: #2a5a2a;
-		color: #ccc;
+		background: var(--color-guide-active-program);
+		border-color: var(--color-guide-active-border);
+		color: var(--color-text);
 	}
 
 	.guide-row.active .program-block.now-playing {
-		background: #1a5a1a;
-		border-color: #4c4;
-		color: #fff;
+		background: var(--color-guide-now);
+		border-color: var(--color-guide-now-border);
+		color: var(--color-text-bright);
 	}
 
 	.channel-label {
@@ -97,18 +98,18 @@
 		align-items: center;
 		gap: 8px;
 		padding: 0 10px;
-		background: #0a1a0a;
-		border-right: 2px solid #1a3a1a;
-		color: #ccc;
-		font-family: monospace;
+		background: var(--color-surface);
+		border-right: 2px solid var(--color-border);
+		color: var(--color-text);
 		font-size: 0.8rem;
 		text-align: left;
 	}
 
 	.channel-num {
-		color: #3a3;
+		color: var(--color-primary);
 		font-weight: bold;
 		min-width: 24px;
+		text-shadow: var(--text-glow);
 	}
 
 	.channel-name {
@@ -127,11 +128,10 @@
 		position: absolute;
 		top: 2px;
 		bottom: 2px;
-		background: #0d2a0d;
-		border: 1px solid #1a3a1a;
-		border-radius: 2px;
-		color: #aaa;
-		font-family: monospace;
+		background: var(--color-guide-program);
+		border: 1px solid var(--color-border);
+		border-radius: var(--border-radius);
+		color: var(--color-text-dim);
 		font-size: 0.7rem;
 		padding: 0 6px;
 		cursor: pointer;
@@ -143,14 +143,15 @@
 	}
 
 	.program-block:hover {
-		background: #1a3a1a;
-		color: #fff;
+		background: var(--color-surface-hover);
+		color: var(--color-text-bright);
 	}
 
 	.program-block.now-playing {
-		background: #1a4a1a;
-		border-color: #3a3;
-		color: #fff;
+		background: var(--color-guide-now);
+		border-color: var(--color-guide-now-border);
+		color: var(--color-text-bright);
+		text-shadow: var(--text-glow);
 	}
 
 	.program-title {
@@ -163,7 +164,6 @@
 		display: none;
 	}
 
-	/* Mobile: show channel name + now playing text, hide timeline */
 	@media (max-width: 640px) {
 		.guide-row {
 			height: 52px;
@@ -183,8 +183,7 @@
 			align-items: center;
 			flex: 1;
 			padding: 0 10px;
-			color: #aaa;
-			font-family: monospace;
+			color: var(--color-text-dim);
 			font-size: 0.75rem;
 			overflow: hidden;
 			text-overflow: ellipsis;

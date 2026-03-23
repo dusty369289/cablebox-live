@@ -25,7 +25,10 @@
 		isMuted,
 		toggleMuted,
 		isCrtEnabled,
-		toggleCrt
+		toggleCrt,
+		getTheme,
+		cycleTheme,
+		THEMES
 	} from '$lib/stores/settings.svelte.js';
 	import type { Channel, ScheduleResult } from '$lib/scheduling/types.js';
 
@@ -201,6 +204,11 @@
 				event.preventDefault();
 				toggleCrt();
 				break;
+			case 't':
+			case 'T':
+				event.preventDefault();
+				cycleTheme();
+				break;
 			case 'm':
 			case 'M':
 				event.preventDefault();
@@ -243,6 +251,7 @@
 	let startSeconds = $derived(schedule?.offsetSeconds ?? 0);
 	let videoTitle = $derived(schedule?.video.title ?? '');
 	let crtEnabled = $derived(isCrtEnabled());
+	let themeLabel = $derived(THEMES.find(t => t.id === getTheme())?.label ?? 'Theme');
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -304,6 +313,9 @@
 				<button class="ctrl-btn" class:active-toggle={crtEnabled} onclick={toggleCrt} title="CRT Effect (C)">
 					CRT
 				</button>
+				<button class="ctrl-btn" onclick={cycleTheme} title="Theme (T)">
+					{themeLabel}
+				</button>
 				<button class="ctrl-btn" onclick={() => (showImport = !showImport)} title="Import Channels (I)">
 					+
 				</button>
@@ -336,8 +348,9 @@
 	:global(body) {
 		margin: 0;
 		padding: 0;
-		background: #000;
+		background: var(--color-bg);
 		overflow: hidden;
+		font-family: var(--font-family);
 	}
 
 	.loading {
@@ -346,19 +359,19 @@
 		align-items: center;
 		justify-content: center;
 		height: 100vh;
-		color: #3a3;
-		font-family: monospace;
+		color: var(--color-primary);
+		font-family: var(--font-family);
 		font-size: 1.5rem;
-		background: #000;
+		background: var(--color-bg);
 		gap: 16px;
 	}
 
 	.retry-btn {
-		background: #1a3a1a; border: 1px solid #3a3; color: #3a3;
-		padding: 8px 20px; border-radius: 4px; font-family: monospace;
+		background: var(--color-surface); border: 1px solid var(--color-primary); color: var(--color-primary);
+		padding: 8px 20px; border-radius: var(--border-radius); font-family: var(--font-family);
 		font-size: 1rem; cursor: pointer;
 	}
-	.retry-btn:hover { background: #2a4a2a; color: #5c5; }
+	.retry-btn:hover { background: var(--color-surface-hover); color: var(--color-primary-bright); }
 
 	.splash {
 		display: flex;
@@ -366,7 +379,7 @@
 		justify-content: center;
 		width: 100vw;
 		height: 100vh;
-		background: #000;
+		background: var(--color-bg);
 		border: none;
 		cursor: pointer;
 		padding: 0;
@@ -374,26 +387,27 @@
 
 	.splash-content {
 		text-align: center;
-		font-family: monospace;
+		font-family: var(--font-family);
 	}
 
 	.splash-title {
 		font-size: 3rem;
 		font-weight: bold;
-		color: #3a3;
+		color: var(--color-primary);
 		letter-spacing: 0.2em;
 		margin-bottom: 20px;
+		text-shadow: var(--text-glow);
 	}
 
 	.splash-subtitle {
 		font-size: 1.2rem;
-		color: #666;
+		color: var(--color-text-dim);
 		animation: blink 1.5s step-end infinite;
 	}
 
 	.splash-hint {
 		font-size: 0.8rem;
-		color: #444;
+		color: var(--color-text-dim);
 		margin-top: 16px;
 	}
 
@@ -418,11 +432,13 @@
 	}
 
 	.channel-indicator {
-		font-family: monospace;
+		font-family: var(--font-family);
 		font-size: 1.2rem;
-		color: #3a3;
-		background: rgba(0, 0, 0, 0.6);
+		color: var(--color-primary);
+		background: var(--color-overlay-bg);
 		padding: 4px 12px;
+		border-radius: var(--border-radius);
+		text-shadow: var(--text-glow);
 	}
 
 	.controls-bar {
@@ -432,9 +448,9 @@
 		display: flex;
 		align-items: center;
 		gap: 16px;
-		background: rgba(0, 0, 0, 0.7);
-		border: 1px solid #1a3a1a;
-		border-radius: 6px;
+		background: var(--color-controls-bg);
+		border: 1px solid var(--color-controls-border);
+		border-radius: var(--border-radius);
 		padding: 6px 14px;
 		z-index: 25;
 	}
@@ -447,23 +463,24 @@
 	.ctrl-btn {
 		background: none;
 		border: 1px solid transparent;
-		color: #3a3;
+		color: var(--color-primary);
+		font-family: var(--font-family);
 		font-size: 1.1rem;
 		cursor: pointer;
 		padding: 4px 8px;
-		border-radius: 4px;
+		border-radius: var(--border-radius);
 		line-height: 1;
 	}
 
 	.ctrl-btn:hover {
-		background: rgba(51, 170, 51, 0.2);
-		border-color: #3a3;
+		background: var(--color-surface-hover);
+		border-color: var(--color-primary);
 	}
 
 	.ctrl-btn.active-toggle {
-		color: #5c5;
-		border-color: #3a3;
-		background: rgba(51, 170, 51, 0.15);
+		color: var(--color-primary-bright);
+		border-color: var(--color-primary);
+		background: var(--color-surface-active);
 	}
 
 	/* Mobile responsive */
