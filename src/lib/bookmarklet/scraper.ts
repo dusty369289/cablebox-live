@@ -223,6 +223,7 @@ let cancelScroll = false;
  */
 async function autoScrollAndCollect(
 	collected: Map<string, ScrapedVideo>,
+	fallbackChannel: string,
 	onProgress: (videoCount: number) => void
 ): Promise<void> {
 	cancelScroll = false;
@@ -231,7 +232,7 @@ async function autoScrollAndCollect(
 
 	while (staleRounds < 3 && !cancelScroll) {
 		// Extract from whatever is currently in the DOM
-		collectFromDOM(collected);
+		collectFromDOM(collected, fallbackChannel);
 		onProgress(collected.size);
 
 		window.scrollTo(0, document.documentElement.scrollHeight);
@@ -249,7 +250,7 @@ async function autoScrollAndCollect(
 	}
 
 	// One final extraction before scrolling back
-	collectFromDOM(collected);
+	collectFromDOM(collected, fallbackChannel);
 	onProgress(collected.size);
 	window.scrollTo(0, 0);
 }
@@ -273,14 +274,14 @@ function findVideoRenderer(data: any): any {
 	return null;
 }
 
-/** Detect the channel name from the page header (for channel pages). */
+/** Detect the channel name from the current URL and page metadata. */
 function getPageChannelName(): string {
-	// Channel page header
-	const channelName = document.querySelector('ytd-channel-name yt-formatted-string')?.textContent?.trim();
-	if (channelName) return channelName;
-	// Fallback: meta tag
-	const meta = document.querySelector('meta[property="og:title"]');
-	if (meta) return (meta as HTMLMetaElement).content?.trim() || '';
+	// Most reliable: URL handle (e.g. /@CreepPodcast/videos → CreepPodcast)
+	const pathMatch = window.location.pathname.match(/^\/@([^/]+)/);
+	if (pathMatch) return decodeURIComponent(pathMatch[1]);
+	// Fallback: document title (e.g. "CreepCast - YouTube" → "CreepCast")
+	const title = document.title;
+	if (title.endsWith(' - YouTube')) return title.slice(0, -10).trim();
 	return '';
 }
 
@@ -304,8 +305,7 @@ function extractFromElementData(data: any, fallbackChannel: string): ScrapedVide
 }
 
 /** Extract videos from the current DOM and add to the map (deduped by ID). */
-function collectFromDOM(collected: Map<string, ScrapedVideo>) {
-	const fallbackChannel = getPageChannelName();
+function collectFromDOM(collected: Map<string, ScrapedVideo>, fallbackChannel: string) {
 
 	// Primary content selectors (no ytd-rich-grid-media — it's a child of rich-item-renderer)
 	const selectors = [
@@ -538,9 +538,8 @@ function renderVideoItem(v: ScrapedVideo): HTMLElement {
 			ui.channelFilterEl.appendChild(o);
 		}
 
-		const pageChannel = document.querySelector('ytd-channel-name yt-formatted-string')?.textContent
-			|| channels[0] || 'My Channel';
-		ui.channelNameEl.value = pageChannel;
+		// Use the most common channel from results, or page header
+		ui.channelNameEl.value = channels[0] || getPageChannelName() || 'My Channel';
 
 		ui.filtersEl.style.display = 'flex';
 		ui.actionsEl.style.display = 'flex';
@@ -570,13 +569,15 @@ function renderVideoItem(v: ScrapedVideo): HTMLElement {
 		while (ui.videoListEl.firstChild) ui.videoListEl.removeChild(ui.videoListEl.firstChild);
 
 		scanning = true;
+		// Capture channel name NOW — before SPA state changes
+		const pageChannel = getPageChannelName();
 		ui.scanBtn.textContent = 'Stop Scan';
 		ui.scanBtn.style.background = '#3a1a1a';
 		ui.scanBtn.style.color = '#f66';
 		ui.scanBtn.style.borderColor = '#f33';
 		ui.statusEl.textContent = 'Auto-scrolling to load all videos...';
 
-		await autoScrollAndCollect(collected, (videoCount) => {
+		await autoScrollAndCollect(collected, pageChannel, (videoCount) => {
 			if (!scanning) return;
 			ui.statusEl.textContent = `Scrolling... ${videoCount} videos found (click Stop to finish early)`;
 		});
