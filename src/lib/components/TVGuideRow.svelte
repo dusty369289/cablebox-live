@@ -130,7 +130,7 @@
 		bottom: 2px;
 		background: var(--color-guide-program);
 		border: 1px solid var(--color-border);
-		border-radius: var(--border-radius);
+		border-radius: var(--border-radius-sm);
 		color: var(--color-text-dim);
 		font-size: 0.7rem;
 		padding: 0 6px;

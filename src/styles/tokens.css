@@ -1,38 +1,5 @@
-/* ─── Default / Green CRT Theme (current look) ─────────────────────── */
+/* ─── Default / 90s Cable TV / Prevue Channel Theme ─────────────────── */
 :root,
-[data-theme='crt-green'] {
-	--color-bg: #000000;
-	--color-surface: #0a1a0a;
-	--color-surface-hover: #1a2a1a;
-	--color-surface-active: #1a3a1a;
-	--color-border: #1a3a1a;
-	--color-primary: #33aa33;
-	--color-primary-dim: #1a6a1a;
-	--color-primary-bright: #55cc55;
-	--color-text: #cccccc;
-	--color-text-dim: #888888;
-	--color-text-bright: #ffffff;
-	--color-danger: #ff3333;
-	--color-now-line: #ff3333;
-	--color-guide-bg: rgba(0, 10, 0, 0.95);
-	--color-guide-now: #1a4a1a;
-	--color-guide-now-border: #33aa33;
-	--color-guide-program: #0d2a0d;
-	--color-guide-active-row: rgba(51, 170, 51, 0.25);
-	--color-guide-active-program: #153515;
-	--color-guide-active-border: #2a5a2a;
-	--color-overlay-bg: rgba(0, 0, 0, 0.85);
-	--color-controls-bg: rgba(0, 0, 0, 0.7);
-	--color-controls-border: #1a3a1a;
-
-	--font-family: 'Courier New', 'Consolas', monospace;
-	--border-radius: 0px;
-	--guide-row-height: 40px;
-	--crt-visible: 1;
-	--text-glow: none;
-}
-
-/* ─── 90s Cable TV / Prevue Channel Theme ───────────────────────────── */
 [data-theme='cable-90s'] {
 	--color-bg: #000022;
 	--color-surface: #000033;
@@ -60,9 +27,44 @@
 
 	--font-family: 'VT323', 'Courier New', monospace;
 	--border-radius: 0px;
-	--guide-row-height: 32px;
+	--border-radius-sm: 0px;
+	--guide-row-height: 38px;
 	--crt-visible: 1;
 	--text-glow: 0 0 4px rgba(0, 255, 255, 0.5);
+}
+
+/* ─── Phosphor Green Theme ──────────────────────────────────────────── */
+[data-theme='phosphor'] {
+	--color-bg: #000000;
+	--color-surface: #0a1a0a;
+	--color-surface-hover: #1a2a1a;
+	--color-surface-active: #1a3a1a;
+	--color-border: #1a3a1a;
+	--color-primary: #33aa33;
+	--color-primary-dim: #1a6a1a;
+	--color-primary-bright: #55cc55;
+	--color-text: #cccccc;
+	--color-text-dim: #888888;
+	--color-text-bright: #ffffff;
+	--color-danger: #ff3333;
+	--color-now-line: #ff3333;
+	--color-guide-bg: rgba(0, 10, 0, 0.95);
+	--color-guide-now: #1a4a1a;
+	--color-guide-now-border: #33aa33;
+	--color-guide-program: #0d2a0d;
+	--color-guide-active-row: rgba(51, 170, 51, 0.25);
+	--color-guide-active-program: #153515;
+	--color-guide-active-border: #2a5a2a;
+	--color-overlay-bg: rgba(0, 0, 0, 0.85);
+	--color-controls-bg: rgba(0, 0, 0, 0.7);
+	--color-controls-border: #1a3a1a;
+
+	--font-family: 'Courier New', 'Consolas', monospace;
+	--border-radius: 0px;
+	--border-radius-sm: 0px;
+	--guide-row-height: 40px;
+	--crt-visible: 1;
+	--text-glow: none;
 }
 
 /* ─── Material Design 3 Dark Theme ──────────────────────────────────── */
@@ -93,6 +95,7 @@
 
 	--font-family: 'Roboto', 'Noto Sans', system-ui, sans-serif;
 	--border-radius: 12px;
+	--border-radius-sm: 4px;
 	--guide-row-height: 48px;
 	--crt-visible: 0;
 	--text-glow: none;

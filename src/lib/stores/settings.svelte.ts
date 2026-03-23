@@ -4,11 +4,11 @@
 
 const STORAGE_KEY = 'cablebox-settings';
 
-export type Theme = 'crt-green' | 'cable-90s' | 'material';
+export type Theme = 'cable-90s' | 'phosphor' | 'material';
 
 export const THEMES: { id: Theme; label: string }[] = [
-	{ id: 'crt-green', label: 'CRT Green' },
 	{ id: 'cable-90s', label: '90s Cable' },
+	{ id: 'phosphor', label: 'Phosphor' },
 	{ id: 'material', label: 'Material' }
 ];
 
@@ -23,7 +23,7 @@ const defaults: Settings = {
 	volume: 80,
 	muted: false,
 	crtEnabled: true,
-	theme: 'crt-green'
+	theme: 'cable-90s'
 };
 
 function loadSettings(): Settings {
