@@ -331,18 +331,6 @@
 				<button class="ctrl-btn" onclick={() => (showGuide = !showGuide)} title="Guide (G)">
 					☰
 				</button>
-				<button class="ctrl-btn" class:active-toggle={crtEnabled} onclick={toggleCrt} title="CRT Effect (C)">
-					CRT
-				</button>
-				<button class="ctrl-btn" onclick={cycleTheme} title="Theme (T)">
-					{themeLabel}
-				</button>
-				<button class="ctrl-btn" onclick={() => (showManager = !showManager)} title="Manage Channels (E)">
-					&#9881;
-				</button>
-				<button class="ctrl-btn" onclick={() => (showImport = !showImport)} title="Import Channels (I)">
-					+
-				</button>
 			</div>
 		</div>
 
@@ -371,6 +359,12 @@
 				currentChannelIndex={currentIndex}
 				{now}
 				onTune={handleTune}
+				onManage={() => (showManager = true)}
+				onImport={() => (showImport = true)}
+				onToggleCrt={toggleCrt}
+				onCycleTheme={cycleTheme}
+				{crtEnabled}
+				{themeLabel}
 			/>
 		{/if}
 	</div>
@@ -507,12 +501,6 @@
 	.ctrl-btn:hover {
 		background: var(--color-surface-hover);
 		border-color: var(--color-primary);
-	}
-
-	.ctrl-btn.active-toggle {
-		color: var(--color-primary-bright);
-		border-color: var(--color-primary);
-		background: var(--color-surface-active);
 	}
 
 	/* Mobile responsive */

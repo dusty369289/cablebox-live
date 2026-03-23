@@ -16,7 +16,7 @@
 	function getSlotStyle(slot: GuideSlot): string {
 		const left = ((slot.startTime - rangeStart) / rangeDuration) * 100;
 		const width = ((slot.endTime - slot.startTime) / rangeDuration) * 100;
-		return `left: ${left}%; width: ${width}%;`;
+		return `left: calc(${left}% + 1px); width: calc(${width}% - 2px);`;
 	}
 
 	function isCurrentSlot(slot: GuideSlot): boolean {

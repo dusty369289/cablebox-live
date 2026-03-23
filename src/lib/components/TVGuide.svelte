@@ -8,9 +8,15 @@
 		currentChannelIndex: number;
 		now: number;
 		onTune: (channel: Channel) => void;
+		onManage: () => void;
+		onImport: () => void;
+		onToggleCrt: () => void;
+		onCycleTheme: () => void;
+		crtEnabled: boolean;
+		themeLabel: string;
 	};
 
-	let { channels, currentChannelIndex, now, onTune }: Props = $props();
+	let { channels, currentChannelIndex, now, onTune, onManage, onImport, onToggleCrt, onCycleTheme, crtEnabled, themeLabel }: Props = $props();
 
 	// Guide shows a 2-hour window centered around now (30min past, 90min future)
 	const LOOKBACK = 30 * 60; // 30 minutes
@@ -56,7 +62,15 @@
 
 <div class="tv-guide">
 	<div class="guide-header">
-		<div class="header-label">CHANNEL GUIDE</div>
+		<div class="header-label">
+			<span class="header-title">GUIDE</span>
+			<div class="header-actions">
+				<button class="header-btn" onclick={onManage} title="Manage Channels (E)">&#9881;</button>
+				<button class="header-btn" onclick={onImport} title="Import Channels (I)">+</button>
+				<button class="header-btn" class:active={crtEnabled} onclick={onToggleCrt} title="CRT Effect (C)">CRT</button>
+				<button class="header-btn" onclick={onCycleTheme} title="Theme (T)">{themeLabel}</button>
+			</div>
+		</div>
 		<div class="time-axis">
 			{#each timeMarkers as marker (marker.time)}
 				<div
@@ -120,13 +134,53 @@
 	.header-label {
 		flex-shrink: 0;
 		width: 160px;
-		padding: 8px 10px;
+		height: 32px;
+		padding: 0 6px;
+		border-right: 2px solid var(--color-border);
+		background: var(--color-surface);
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		overflow: hidden;
+	}
+
+	.header-title {
 		color: var(--color-primary);
 		font-weight: bold;
 		font-size: 0.8rem;
-		border-right: 2px solid var(--color-border);
-		background: var(--color-surface);
 		text-shadow: var(--text-glow);
+		white-space: nowrap;
+	}
+
+	.header-actions {
+		display: flex;
+		gap: 1px;
+		margin-left: auto;
+		flex-shrink: 0;
+	}
+
+	.header-btn {
+		background: none;
+		border: 1px solid transparent;
+		color: var(--color-text-dim);
+		font-family: var(--font-family);
+		font-size: 0.65rem;
+		cursor: pointer;
+		padding: 2px 4px;
+		border-radius: var(--border-radius-sm);
+		line-height: 1;
+		white-space: nowrap;
+		max-width: 40px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.header-btn:hover {
+		color: var(--color-primary);
+		border-color: var(--color-primary);
+		background: var(--color-surface-hover);
+	}
+	.header-btn.active {
+		color: var(--color-primary);
 	}
 
 	.time-axis {
@@ -182,7 +236,7 @@
 		.header-label {
 			width: 100%;
 			border-right: none;
-			text-align: center;
+			justify-content: center;
 		}
 
 		.time-axis {
