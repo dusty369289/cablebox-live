@@ -19,7 +19,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const API_BASE = 'https://www.googleapis.com/youtube/v3';
 const TARGET_DURATION = 18 * 60 * 60; // 18 hours per TV channel
-const MIN_VIDEO_DURATION = 60; // Filter out Shorts
+const MIN_VIDEO_DURATION = 299; // Filter out Shorts and very short clips
+const MAX_VIDEO_DURATION = 95 * 60; // 1hr 35min — skip marathon-length videos
 const MAX_VIDEOS_PER_SOURCE = 80; // Cap per YouTube channel to prevent dominance
 const MAX_PAGES_PER_SOURCE = 6; // Pages of 50 = 300 videos max scanned per source
 
@@ -109,7 +110,7 @@ async function fetchSourceVideos(
 		for (const item of data.items) {
 			const id = item.snippet.resourceId.videoId;
 			const duration = durations.get(id);
-			if (duration && duration >= MIN_VIDEO_DURATION) {
+			if (duration && duration >= MIN_VIDEO_DURATION && duration <= MAX_VIDEO_DURATION) {
 				videos.push({
 					id,
 					title: item.snippet.title,
