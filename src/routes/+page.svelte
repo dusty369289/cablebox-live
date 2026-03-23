@@ -311,6 +311,10 @@
 			</div>
 		</div>
 
+		{#if showGuide}
+			<button class="guide-dismiss" onclick={() => (showGuide = false)} aria-label="Close guide"></button>
+		{/if}
+
 		<StaticTransition active={showStatic} />
 		<CRTOverlay enabled={crtEnabled} />
 
@@ -446,6 +450,16 @@
 		padding: 4px 12px;
 		border-radius: var(--border-radius);
 		text-shadow: var(--text-glow);
+	}
+
+	.guide-dismiss {
+		position: absolute;
+		inset: 0;
+		z-index: 29;
+		cursor: pointer;
+		background: none;
+		border: none;
+		padding: 0;
 	}
 
 	.controls-bar {
