@@ -100,6 +100,7 @@
 				{/if}
 				<div class="bookmarklet-hint">
 					Then visit any YouTube page and click it to scan videos.
+					<br /><a href="/guide" class="guide-link" target="_blank">Full step-by-step guide</a>
 				</div>
 			</div>
 
@@ -227,7 +228,14 @@
 
 	.bookmarklet-loading { font-size: 12px; color: #555; }
 
-	.bookmarklet-hint { font-size: 11px; color: #555; }
+	.bookmarklet-hint { font-size: 11px; color: #555; line-height: 1.6; }
+
+	.guide-link {
+		color: var(--color-primary);
+		text-decoration: none;
+		font-weight: bold;
+	}
+	.guide-link:hover { text-decoration: underline; color: var(--color-primary-bright); }
 
 	.json-input {
 		width: 100%;
