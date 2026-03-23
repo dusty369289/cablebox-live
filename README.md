@@ -2,6 +2,8 @@
 
 **Retro cable TV experience for YouTube.** Deterministic scheduling, channel surfing, and a 90s EPG — all in the browser.
 
+### [**>>> Try the Live Demo <<<**](https://dusty369289.github.io/cablebox-live/)
+
 ---
 
 ## What is this?
