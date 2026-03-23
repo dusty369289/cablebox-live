@@ -24,9 +24,40 @@
 	}
 
 	let currentSlot = $derived(slots.find((s) => isCurrentSlot(s)));
+
+	// Distinguish scroll from tap on touch devices
+	let touchStartY = 0;
+	let touchMoved = false;
+
+	function handleTouchStart(e: TouchEvent) {
+		touchStartY = e.touches[0].clientY;
+		touchMoved = false;
+	}
+
+	function handleTouchMove(e: TouchEvent) {
+		if (Math.abs(e.touches[0].clientY - touchStartY) > 5) {
+			touchMoved = true;
+		}
+	}
+
+	function handleClick() {
+		if (!touchMoved) {
+			onTune(channel);
+		}
+	}
 </script>
 
-<button class="guide-row" class:active={isActive} onclick={() => onTune(channel)}>
+<!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+<div
+	class="guide-row"
+	class:active={isActive}
+	onclick={handleClick}
+	ontouchstart={handleTouchStart}
+	ontouchmove={handleTouchMove}
+	role="button"
+	tabindex="0"
+	onkeydown={(e) => e.key === 'Enter' && onTune(channel)}
+>
 	<div class="channel-label">
 		<span class="channel-num">{channel.number}</span>
 		<span class="channel-name">{channel.name}</span>
@@ -46,7 +77,7 @@
 	<div class="mobile-now-playing">
 		{currentSlot?.video.title ?? ''}
 	</div>
-</button>
+</div>
 
 <style>
 	.guide-row {

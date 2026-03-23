@@ -100,7 +100,7 @@
 		background: var(--color-guide-bg);
 		border-top: 2px solid var(--color-primary);
 		font-family: var(--font-family);
-		z-index: 20;
+		z-index: 30;
 		display: flex;
 		flex-direction: column;
 		animation: slide-up 0.3s ease-out;
