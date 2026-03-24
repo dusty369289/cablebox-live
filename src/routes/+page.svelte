@@ -43,6 +43,7 @@
 	let showImport = $state(false);
 	let showManager = $state(false);
 	let showStatic = $state(false);
+	let isFullscreen = $state(false);
 	let allChannelsUnfiltered = $state<Channel[]>([]);
 	let tickInterval: ReturnType<typeof setInterval> | null = null;
 	let tvPlayer: TVPlayer | undefined = $state();
@@ -88,6 +89,10 @@
 		startClock();
 		loaded = true;
 		updateSchedule();
+
+		document.addEventListener('fullscreenchange', () => {
+			isFullscreen = !!document.fullscreenElement;
+		});
 	});
 
 	function start() {
@@ -287,9 +292,12 @@
 			onVideoEnd={handleVideoEnd}
 		/>
 		<ChannelBanner channel={currentChannel} {videoTitle} />
-		<NowPlaying channel={currentChannel} {schedule} />
 
+		{#if !isFullscreen}
+			<NowPlaying channel={currentChannel} {schedule} />
+		{/if}
 
+		{#if !isFullscreen}
 		<div class="controls-bar">
 			<VolumeControl onVolumeChange={handleVolumeChange} onMuteToggle={handleMuteToggle} />
 
@@ -305,6 +313,7 @@
 				</button>
 			</div>
 		</div>
+		{/if}
 
 		{#if showGuide}
 			<button class="guide-dismiss" onclick={() => (showGuide = false)} aria-label="Close guide"></button>
