@@ -4,6 +4,7 @@ export type Video = {
 	title: string;
 	duration: number; // seconds
 	thumbnail: string;
+	creator?: string; // YouTube channel name this video came from
 };
 
 /** A source of videos — either baked-in defaults or user-imported. */

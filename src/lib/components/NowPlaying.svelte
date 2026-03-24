@@ -25,6 +25,9 @@
 		<div class="np-channel">
 			<span class="np-number">CH {channel.number}</span>
 			<span class="np-name">{channel.name}</span>
+			{#if schedule.video.creator}
+				<span class="np-creator">{schedule.video.creator}</span>
+			{/if}
 		</div>
 		<div class="np-video">
 			<span class="np-title">{schedule.video.title}</span>
@@ -66,6 +69,17 @@
 	.np-name {
 		color: var(--color-text-dim);
 		font-size: 0.75rem;
+	}
+
+	.np-creator {
+		color: var(--color-text-dim);
+		font-size: 0.75rem;
+		opacity: 0.7;
+	}
+
+	.np-creator::before {
+		content: '·';
+		margin-right: 8px;
 	}
 
 	.np-video {
