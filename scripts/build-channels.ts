@@ -149,17 +149,16 @@ function balanceVideos(sourceVideos: Map<string, VideoData[]>): VideoData[] {
 		name,
 		videos,
 		index: 0,
-		duration: 0 // accumulated duration for this source
+		duration: 0
 	}));
 
 	while (totalDuration < TARGET_DURATION) {
-		// Find the source with the least accumulated duration that still has videos
 		let best: typeof sources[0] | null = null;
 		for (const s of sources) {
 			if (s.index >= s.videos.length) continue;
 			if (!best || s.duration < best.duration) best = s;
 		}
-		if (!best) break; // all sources exhausted
+		if (!best) break;
 
 		const video = best.videos[best.index];
 		best.index++;
