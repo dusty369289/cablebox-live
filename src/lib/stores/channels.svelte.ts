@@ -14,6 +14,25 @@ function saveLastChannel() {
 	if (ch && typeof localStorage !== 'undefined') {
 		localStorage.setItem(LAST_CHANNEL_KEY, ch.slug);
 	}
+	updateHash();
+}
+
+function updateHash() {
+	if (typeof window === 'undefined') return;
+	const ch = channels[currentIndex];
+	if (ch) {
+		const newHash = `#ch/${ch.number}`;
+		if (window.location.hash !== newHash) {
+			history.replaceState(null, '', newHash);
+		}
+	}
+}
+
+/** Read channel number from URL hash like #ch/3 */
+function getChannelFromHash(): number | null {
+	if (typeof window === 'undefined') return null;
+	const match = window.location.hash.match(/^#ch\/(\d+)$/);
+	return match ? parseInt(match[1], 10) : null;
 }
 
 function restoreLastChannel() {
@@ -30,7 +49,16 @@ export function setChannels(list: Channel[]) {
 	const previousSlug = channels[currentIndex]?.slug;
 	channels = list;
 
-	// Try to restore: first the previous channel (for imports), then localStorage
+	// Priority: URL hash > previous channel > localStorage
+	const hashNum = getChannelFromHash();
+	if (hashNum !== null) {
+		const idx = list.findIndex((ch) => ch.number === hashNum);
+		if (idx >= 0) {
+			currentIndex = idx;
+			return;
+		}
+	}
+
 	if (previousSlug) {
 		const idx = list.findIndex((ch) => ch.slug === previousSlug);
 		if (idx >= 0) {
@@ -39,6 +67,22 @@ export function setChannels(list: Channel[]) {
 		}
 	}
 	restoreLastChannel();
+	updateHash();
+}
+
+/** Listen for hash changes and switch channel accordingly. */
+export function initHashListener() {
+	if (typeof window === 'undefined') return;
+	window.addEventListener('hashchange', () => {
+		const num = getChannelFromHash();
+		if (num !== null) {
+			const idx = channels.findIndex((ch) => ch.number === num);
+			if (idx >= 0 && idx !== currentIndex) {
+				currentIndex = idx;
+				saveLastChannel();
+			}
+		}
+	});
 }
 
 export function getChannels(): Channel[] {

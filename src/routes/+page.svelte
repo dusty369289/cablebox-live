@@ -20,7 +20,8 @@
 		channelDown,
 		switchToChannel,
 		switchToChannelByNumber,
-		getChannels
+		getChannels,
+		initHashListener
 	} from '$lib/stores/channels.svelte.js';
 	import { startClock, stopClock, getCurrentTime } from '$lib/stores/clock.svelte.js';
 	import {
@@ -94,6 +95,8 @@
 		document.addEventListener('fullscreenchange', () => {
 			isFullscreen = !!document.fullscreenElement;
 		});
+
+		initHashListener();
 	});
 
 	function start() {
