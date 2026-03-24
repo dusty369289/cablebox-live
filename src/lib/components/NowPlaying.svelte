@@ -18,6 +18,11 @@
 	let progress = $derived(
 		schedule ? (schedule.offsetSeconds / schedule.video.duration) * 100 : 0
 	);
+
+	const UP_NEXT_THRESHOLD = 300; // Show "up next" when under 5 minutes left
+	let showUpNext = $derived(
+		schedule ? schedule.secondsUntilNext <= UP_NEXT_THRESHOLD && schedule.nextVideo.id !== schedule.video.id : false
+	);
 </script>
 
 {#if channel && schedule}
@@ -36,6 +41,15 @@
 		<div class="np-progress">
 			<div class="np-progress-fill" style="width: {progress}%"></div>
 		</div>
+		{#if showUpNext}
+			<div class="np-up-next">
+				<span class="np-up-next-label">Up next</span>
+				<span class="np-up-next-title">{schedule.nextVideo.title}</span>
+				{#if schedule.nextVideo.creator}
+					<span class="np-up-next-creator">· {schedule.nextVideo.creator}</span>
+				{/if}
+			</div>
+		{/if}
 	</div>
 {/if}
 
@@ -115,6 +129,43 @@
 		height: 100%;
 		background: var(--color-primary);
 		transition: width 1s linear;
+	}
+
+	.np-up-next {
+		margin-top: 6px;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		animation: fade-in 0.5s ease-out;
+	}
+
+	.np-up-next-label {
+		color: var(--color-primary);
+		font-size: 0.7rem;
+		font-weight: bold;
+		text-transform: uppercase;
+		opacity: 0.8;
+	}
+
+	.np-up-next-title {
+		color: var(--color-text-dim);
+		font-size: 0.75rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		flex: 1;
+	}
+
+	.np-up-next-creator {
+		color: var(--color-text-dim);
+		font-size: 0.7rem;
+		opacity: 0.6;
+		white-space: nowrap;
+	}
+
+	@keyframes fade-in {
+		from { opacity: 0; transform: translateY(-4px); }
+		to { opacity: 1; transform: translateY(0); }
 	}
 
 	@media (max-width: 640px) {
