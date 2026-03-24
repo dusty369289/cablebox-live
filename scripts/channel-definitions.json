@@ -119,5 +119,30 @@
 			{ "id": "UCQkLvACGWo8IlY1-WKfPp6g", "name": "Cool Worlds" },
 			{ "id": "UC1znqKFL3jeR0eoA0pHpzvw", "name": "Scott Manley" }
 		]
+	},
+	{
+		"name": "Adult Cartoons",
+		"slug": "adult-cartoons",
+		"number": 11,
+		"category": "Entertainment",
+		"youtubeChannels": [
+			{ "id": "UCkliGZOiX220e19mvYsX2lA", "name": "BEEFWAD" },
+			{ "id": "UCgPClNr5VSYC3syrDUIlzLw", "name": "Adult Swim" },
+			{ "id": "UCzfyYtgvkx5mLy8nlLlayYg", "name": "Vivziepop" },
+			{ "id": "UCxLpKibphYqXrXpxAnR8MfA", "name": "MondoMedia" }
+		]
+	},
+	{
+		"name": "Stand-Up Comedy",
+		"slug": "standup-comedy",
+		"number": 12,
+		"category": "Entertainment",
+		"youtubeChannels": [
+			{ "id": "UC7MgijK9WL_EqCo1juUERwg", "name": "Don't Tell Comedy" },
+			{ "id": "UCvlVuntLjdURVD3b3Hx7kxw", "name": "Dry Bar Comedy" },
+			{ "id": "UCObk_g1hQBy0RKKriVX_zOQ", "name": "Netflix Is A Joke" },
+			{ "id": "UCtw7q4SyOeoCwM1i_3x8lDg", "name": "Comedy Central Stand-Up" },
+			{ "id": "UCObz2FuVgCIX6-hkShwUSVg", "name": "Laugh Factory" }
+		]
 	}
 ]
