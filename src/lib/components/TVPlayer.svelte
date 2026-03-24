@@ -18,6 +18,9 @@
 	let currentVideoId = '';
 	let settingsApplied = false;
 	let errorMessage = $state('');
+	let adPlaying = $state(false);
+	let adCheckInterval: ReturnType<typeof setInterval> | null = null;
+	let containerEl: HTMLDivElement | undefined = $state();
 
 	const ERROR_MESSAGES: Record<number, string> = {
 		2: 'Invalid video parameter',
@@ -26,6 +29,30 @@
 		101: 'Video cannot be embedded',
 		150: 'Video restricted'
 	};
+
+	function checkForAd() {
+		if (!player || !currentVideoId) return;
+		try {
+			const url = player.getVideoUrl();
+			const isAd = !!url && !url.includes(currentVideoId);
+			if (isAd !== adPlaying) {
+				const wasAd = adPlaying;
+				adPlaying = isAd;
+				updatePointerEvents();
+				// Ad just ended — resync playhead to live schedule
+				if (wasAd && !isAd) {
+					onVideoEnd?.();
+				}
+			}
+		} catch {}
+	}
+
+	function updatePointerEvents() {
+		const iframe = containerEl?.querySelector('iframe');
+		if (iframe) {
+			iframe.style.pointerEvents = adPlaying ? 'auto' : 'none';
+		}
+	}
 
 	onMount(async () => {
 		player = await createPlayer('yt-player', {
@@ -44,8 +71,9 @@
 				if (state === PlayerState.PLAYING) {
 					errorMessage = '';
 				}
-				// Auto-resume if paused — no pause allowed, enforces live schedule
-				if (state === PlayerState.PAUSED && player) {
+				checkForAd();
+				// Only auto-resume if paused AND not in an ad
+				if (state === PlayerState.PAUSED && player && !adPlaying) {
 					player.playVideo();
 				}
 			},
@@ -55,20 +83,24 @@
 			onError: (code) => {
 				console.warn(`YouTube player error ${code}: ${ERROR_MESSAGES[code] || 'Unknown'}`);
 				errorMessage = ERROR_MESSAGES[code] || `Error ${code}`;
-				// Skip to next video after 3 seconds
 				setTimeout(() => onVideoEnd?.(), 3000);
 			}
 		});
+
+		adCheckInterval = setInterval(checkForAd, 1000);
 	});
 
 	onDestroy(() => {
 		player?.destroy();
+		if (adCheckInterval) clearInterval(adCheckInterval);
 	});
 
 	function loadVideo(id: string, offset: number) {
 		if (!player || !ready) return;
 		currentVideoId = id;
 		errorMessage = '';
+		adPlaying = false;
+		updatePointerEvents();
 		player.loadVideoById({ videoId: id, startSeconds: offset });
 	}
 
@@ -95,7 +127,7 @@
 	}
 </script>
 
-<div class="tv-player">
+<div class="tv-player" bind:this={containerEl}>
 	<div id="yt-player"></div>
 	{#if errorMessage}
 		<div class="error-overlay">

@@ -28,6 +28,7 @@ export type YTPlayer = {
 	getPlayerState(): number;
 	getDuration(): number;
 	getCurrentTime(): number;
+	getVideoUrl(): string;
 	destroy(): void;
 };
 
