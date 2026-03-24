@@ -583,15 +583,21 @@
 			bottom: calc(10px + env(safe-area-inset-bottom, 0px));
 			left: 10px;
 			right: 10px;
-			justify-content: space-between;
+			justify-content: center;
+			gap: 8px;
 			padding: 8px 12px;
+			overflow: hidden;
+		}
+
+		.control-buttons {
+			gap: 2px;
 		}
 
 		.ctrl-btn {
-			font-size: 1.3rem;
-			padding: 8px 12px;
-			min-width: 44px;
-			min-height: 44px;
+			font-size: 1.1rem;
+			padding: 6px 8px;
+			min-width: 40px;
+			min-height: 40px;
 			display: flex;
 			align-items: center;
 			justify-content: center;
