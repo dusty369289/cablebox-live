@@ -39,6 +39,7 @@ type VideoData = {
 	title: string;
 	duration: number;
 	thumbnail: string;
+	creator?: string;
 };
 
 type OutputChannel = {
@@ -91,6 +92,7 @@ async function fetchVideoDurations(videoIds: string[], apiKey: string): Promise<
 /** Fetch videos from a single YouTube channel's uploads playlist. */
 async function fetchSourceVideos(
 	channelId: string,
+	creatorName: string,
 	apiKey: string
 ): Promise<VideoData[]> {
 	const playlistId = await getUploadsPlaylistId(channelId, apiKey);
@@ -115,7 +117,8 @@ async function fetchSourceVideos(
 					id,
 					title: item.snippet.title,
 					duration,
-					thumbnail: `https://img.youtube.com/vi/${id}/mqdefault.jpg`
+					thumbnail: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
+					creator: creatorName
 				});
 			}
 		}
@@ -196,7 +199,7 @@ async function main() {
 
 		for (const ytCh of def.youtubeChannels) {
 			try {
-				const videos = await fetchSourceVideos(ytCh.id, apiKey);
+				const videos = await fetchSourceVideos(ytCh.id, ytCh.name, apiKey);
 				sourceVideos.set(ytCh.name, videos);
 				const dur = videos.reduce((s, v) => s + v.duration, 0);
 				console.log(`    ${ytCh.name}: ${videos.length} videos, ${formatDuration(dur)}`);
