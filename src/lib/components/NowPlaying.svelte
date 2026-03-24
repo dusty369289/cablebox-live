@@ -59,8 +59,8 @@
 		top: 0;
 		left: 0;
 		right: 0;
-		background: linear-gradient(to bottom, var(--color-overlay-bg), transparent);
-		padding: 12px 16px 20px;
+		background: linear-gradient(to bottom, var(--color-overlay-bg) 60%, transparent);
+		padding: 12px 16px 32px;
 		z-index: 8;
 		font-family: var(--font-family);
 		pointer-events: none;
