@@ -8,6 +8,7 @@
 	import StaticTransition from '$lib/components/StaticTransition.svelte';
 	import ImportModal from '$lib/components/ImportModal.svelte';
 	import ChannelManager from '$lib/components/ChannelManager.svelte';
+	import NowPlaying from '$lib/components/NowPlaying.svelte';
 	import { loadDefaultChannels } from '$lib/data/loader.js';
 	import { getUserChannels } from '$lib/data/channel-store.js';
 	import { getScheduleAt } from '$lib/scheduling/scheduler.js';
@@ -286,14 +287,8 @@
 			onVideoEnd={handleVideoEnd}
 		/>
 		<ChannelBanner channel={currentChannel} {videoTitle} />
+		<NowPlaying channel={currentChannel} {schedule} />
 
-		<div class="top-bar">
-			<div class="channel-indicator">
-				{#if currentChannel}
-					CH {currentChannel.number}
-				{/if}
-			</div>
-		</div>
 
 		<div class="controls-bar">
 			<VolumeControl onVolumeChange={handleVolumeChange} onMuteToggle={handleMuteToggle} />
@@ -432,26 +427,6 @@
 		height: 100dvh;
 	}
 
-	.top-bar {
-		position: absolute;
-		top: 20px;
-		right: 20px;
-		display: flex;
-		gap: 12px;
-		align-items: center;
-		z-index: 10;
-	}
-
-	.channel-indicator {
-		font-family: var(--font-family);
-		font-size: 1.2rem;
-		color: var(--color-primary);
-		background: var(--color-overlay-bg);
-		padding: 4px 12px;
-		border-radius: var(--border-radius);
-		text-shadow: var(--text-glow);
-	}
-
 	.guide-dismiss {
 		position: absolute;
 		inset: 0;
@@ -501,16 +476,6 @@
 
 	/* Mobile responsive */
 	@media (max-width: 640px) {
-		.top-bar {
-			top: 10px;
-			right: 10px;
-		}
-
-		.channel-indicator {
-			font-size: 1rem;
-			padding: 2px 8px;
-		}
-
 		.controls-bar {
 			bottom: calc(10px + env(safe-area-inset-bottom, 0px));
 			left: 10px;
