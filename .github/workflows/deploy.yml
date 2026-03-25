@@ -25,11 +25,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:bookmarklet
-      - name: Update bookmarklet gist
+        env:
+          BOOKMARKLET_VERSION_URL: 'https://gist.githubusercontent.com/dusty369289/a1694b43d68a044186603bf2c73313e5/raw/bookmarklet-version.txt'
+      - name: Update bookmarklet version gist
         run: |
+          echo "$(git rev-parse --short HEAD)" > /tmp/bookmarklet-version.txt
           gh gist edit a1694b43d68a044186603bf2c73313e5 \
-            --filename bookmarklet.js \
-            static/bookmarklet.js
+            --filename bookmarklet-version.txt \
+            /tmp/bookmarklet-version.txt
         env:
           GH_TOKEN: ${{ secrets.GIST_TOKEN }}
       - run: npm run build
