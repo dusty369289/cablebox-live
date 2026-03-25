@@ -15,13 +15,15 @@
 	};
 
 	let { onImport, onClose, nextChannelNumber, existingChannels }: Props = $props();
-	// Loader bookmarklet: tries gist first (auto-updates), falls back to static bundled copy
+	// Loader bookmarklet: fetches JS from gist (auto-updates), falls back to static copy.
+	// Uses Function() constructor instead of eval to work with YouTube's Trusted Types CSP.
 	const gistUrl = 'https://gist.githubusercontent.com/dusty369289/a1694b43d68a044186603bf2c73313e5/raw/bookmarklet.js';
+	const fallbackUrl = 'https://dusty369289.github.io/cablebox-live/bookmarklet.js';
 	let bookmarkletHref = $state('');
 	let mode = $state<'youtube' | 'local'>('youtube');
 
 	onMount(async () => {
-		const loader = `(function(){fetch('${gistUrl}').then(function(r){if(!r.ok)throw 0;return r.text()}).then(eval).catch(function(){fetch('${base}/bookmarklet.js').then(function(r){return r.text()}).then(eval)})})()`;
+		const loader = `(function(){fetch('${gistUrl}').then(function(r){if(!r.ok)throw 0;return r.text()}).catch(function(){return fetch('${fallbackUrl}').then(function(r){return r.text()})}).then(function(c){Function(c)()})})()`;
 		bookmarkletHref = `javascript:void(${encodeURIComponent(loader)})`;
 		updateStorageInfo();
 	});
