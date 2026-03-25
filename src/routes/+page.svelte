@@ -40,6 +40,8 @@
 	let loaded = $state(false);
 	let loadError = $state('');
 	let booting = $state(false);
+	let inAppBrowser = $state(false);
+	let linkCopied = $state(false);
 	let started = $state(false);
 	let schedule = $state<ScheduleResult | null>(null);
 	let showGuide = $state(false);
@@ -80,7 +82,24 @@
 		setChannels(visible);
 	}
 
+	function isInAppBrowser(): boolean {
+		const ua = navigator.userAgent || '';
+		return /Instagram|FBAN|FBAV|Twitter|Line\/|Snapchat|TikTok/i.test(ua);
+	}
+
+	function copyLink() {
+		navigator.clipboard.writeText(window.location.href).then(() => {
+			linkCopied = true;
+			setTimeout(() => { linkCopied = false; }, 2000);
+		}).catch(() => {
+			// Fallback: select a prompt
+			prompt('Copy this link:', window.location.href);
+		});
+	}
+
 	onMount(async () => {
+		inAppBrowser = isInAppBrowser();
+
 		try {
 			const timeout = new Promise<never>((_, reject) =>
 				setTimeout(() => reject(new Error('Channel load timed out')), 10000)
@@ -306,6 +325,25 @@
 	<div class="loading">
 		<p style="color: #f66;">{loadError}</p>
 		<button class="retry-btn" onclick={() => location.reload()}>Retry</button>
+	</div>
+{:else if inAppBrowser}
+	<div class="inapp-screen">
+		<div class="inapp-content">
+			<div class="inapp-title">CABLEBOX</div>
+			<div class="inapp-message">
+				This app works best in your browser.
+				<br />In-app browsers don't support video autoplay.
+			</div>
+			<button class="inapp-btn" onclick={copyLink}>
+				{linkCopied ? 'Copied!' : 'Copy Link'}
+			</button>
+			<div class="inapp-hint">
+				Paste in Chrome or Safari to get the full experience
+			</div>
+			<button class="inapp-skip" onclick={() => { inAppBrowser = false; }}>
+				Continue anyway
+			</button>
+		</div>
 	</div>
 {:else}
 	<!-- Player always mounted once loaded — preloads during splash/boot -->
@@ -534,6 +572,74 @@
 		60% { opacity: 0.8; }
 		100% { opacity: 0; }
 	}
+
+	/* In-app browser warning */
+	.inapp-screen {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100vw;
+		height: 100vh;
+		height: 100dvh;
+		background: var(--color-bg);
+		padding: 20px;
+	}
+
+	.inapp-content {
+		text-align: center;
+		font-family: var(--font-family);
+		max-width: 320px;
+	}
+
+	.inapp-title {
+		font-size: 2.5rem;
+		font-weight: bold;
+		color: var(--color-primary);
+		letter-spacing: 0.2em;
+		margin-bottom: 24px;
+		text-shadow: var(--text-glow);
+	}
+
+	.inapp-message {
+		font-size: 1rem;
+		color: var(--color-text);
+		line-height: 1.6;
+		margin-bottom: 24px;
+	}
+
+	.inapp-btn {
+		background: var(--color-primary);
+		color: #000;
+		border: none;
+		padding: 12px 32px;
+		border-radius: var(--border-radius);
+		font-family: var(--font-family);
+		font-size: 1.1rem;
+		font-weight: bold;
+		cursor: pointer;
+		display: block;
+		width: 100%;
+		margin-bottom: 12px;
+	}
+	.inapp-btn:hover { opacity: 0.85; }
+
+	.inapp-hint {
+		font-size: 0.8rem;
+		color: var(--color-text-dim);
+		margin-bottom: 24px;
+	}
+
+	.inapp-skip {
+		background: none;
+		border: 1px solid var(--color-border);
+		color: var(--color-text-dim);
+		padding: 8px 20px;
+		border-radius: var(--border-radius);
+		font-family: var(--font-family);
+		font-size: 0.8rem;
+		cursor: pointer;
+	}
+	.inapp-skip:hover { color: var(--color-text); border-color: var(--color-text-dim); }
 
 	@keyframes blink {
 		50% { opacity: 0; }
