@@ -58,7 +58,8 @@ export async function createPlayer(
 				disablekb: 1,
 				rel: 0,
 				enablejsapi: 1,
-				iv_load_policy: 3
+				iv_load_policy: 3,
+				origin: window.location.origin
 			},
 			events: {
 				onReady: (event: YTPlayerEvent) => {

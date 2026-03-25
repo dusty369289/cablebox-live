@@ -70,14 +70,19 @@
 		}
 	});
 
-	// On mobile, scroll to show "now" near the left
-	$effect(() => {
-		if (isMobile && scrollContainer) {
-			scrollContainer.scrollLeft = Math.max(0, nowLeft - 40);
-		}
+	// On mount: scroll to "now" on mobile, and scroll active channel into view
+	onMount(() => {
+		requestAnimationFrame(() => {
+			if (!scrollContainer) return;
+			if (isMobile) {
+				scrollContainer.scrollLeft = Math.max(0, nowLeft - 40);
+			}
+			const row = scrollContainer.querySelector('.guide-row.active');
+			row?.scrollIntoView({ block: 'nearest', behavior: 'instant' });
+		});
 	});
 
-	// Keep active channel row visible vertically
+	// Keep active channel row visible when switching channels while guide is open
 	$effect(() => {
 		if (scrollContainer && currentChannelIndex >= 0) {
 			const row = scrollContainer.querySelector('.guide-row.active');
