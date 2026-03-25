@@ -397,7 +397,10 @@ function buildPanel(): {
 		display: 'flex', justifyContent: 'space-between', alignItems: 'center',
 		padding: '12px 16px', borderBottom: '1px solid #333', background: '#0a1a0a'
 	});
-	header.appendChild(el('span', { color: '#3a3', fontWeight: 'bold', fontSize: '14px' }, 'CABLEBOX'));
+	const headerLeft = el('span', { display: 'flex', gap: '6px', alignItems: 'baseline' });
+	headerLeft.appendChild(el('span', { color: '#3a3', fontWeight: 'bold', fontSize: '14px' }, 'CABLEBOX'));
+	headerLeft.appendChild(el('span', { color: '#555', fontSize: '10px' }, __BOOKMARKLET_VERSION__));
+	header.appendChild(headerLeft);
 	const closeBtn = document.createElement('button');
 	closeBtn.textContent = '\u00D7';
 	Object.assign(closeBtn.style, { background: 'none', border: 'none', color: '#666', fontSize: '18px', cursor: 'pointer' });
