@@ -20,6 +20,7 @@ type ScrapedVideo = {
 	channelId: string;
 	uploadedText: string;
 	views: string;
+	watchedPct: number; // 0 = unwatched, 1-100 = partially/fully watched
 };
 
 type ExportChannel = {
@@ -156,7 +157,7 @@ function extractFromLockupViewModel(lvm: any): ScrapedVideo | null {
 
 	const thumbnail = `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
 
-	return { id, title, duration, durationText, thumbnail, channel, channelId: '', uploadedText, views };
+	return { id, title, duration, durationText, thumbnail, channel, channelId: '', uploadedText, views, watchedPct: 0 };
 }
 
 function extractFromVideoRenderer(renderer: any): ScrapedVideo | null {
@@ -204,7 +205,7 @@ function extractFromVideoRenderer(renderer: any): ScrapedVideo | null {
 	const uploadedText = renderer.publishedTimeText?.simpleText || '';
 	const views = renderer.viewCountText?.simpleText || renderer.shortViewCountText?.simpleText || '';
 
-	return { id, title, duration, durationText, thumbnail, channel, channelId, uploadedText, views };
+	return { id, title, duration, durationText, thumbnail, channel, channelId, uploadedText, views, watchedPct: 0 };
 }
 
 
@@ -286,21 +287,40 @@ function getPageChannelName(): string {
 }
 
 /** Try to extract a ScrapedVideo from an element's .data property. */
-function extractFromElementData(data: any, fallbackChannel: string): ScrapedVideo | null {
+function extractFromElementData(data: any, fallbackChannel: string, elem: Element): ScrapedVideo | null {
 	if (!data) return null;
+
+	let video: ScrapedVideo | null = null;
 
 	// New format: lockupViewModel (signed-in homepage, subscriptions)
 	const lvm = data.content?.lockupViewModel;
 	if (lvm) {
-		const video = extractFromLockupViewModel(lvm);
+		video = extractFromLockupViewModel(lvm);
 		if (video && !video.channel) video.channel = fallbackChannel;
-		return video;
+	} else {
+		// Old format: videoRenderer and variants
+		const renderer = findVideoRenderer(data);
+		video = extractFromVideoRenderer(renderer);
+		if (video && !video.channel) video.channel = fallbackChannel;
 	}
 
-	// Old format: videoRenderer and variants
-	const renderer = findVideoRenderer(data);
-	const video = extractFromVideoRenderer(renderer);
-	if (video && !video.channel) video.channel = fallbackChannel;
+	// Detect watched percentage from DOM progress bar width style
+	if (video) {
+		const progressHost = elem.querySelector(
+			'yt-thumbnail-overlay-progress-bar-view-model, ytd-thumbnail-overlay-resume-playback-renderer'
+		);
+		if (progressHost) {
+			// The progress bar segment has an inline width style like "width: 96%;"
+			const segment = progressHost.querySelector('[style*="width"]');
+			if (segment) {
+				const match = (segment as HTMLElement).style.width.match(/(\d+)/);
+				video.watchedPct = match ? parseInt(match[1], 10) : 1;
+			} else {
+				video.watchedPct = 1; // Has progress bar but can't read percentage
+			}
+		}
+	}
+
 	return video;
 }
 
@@ -321,7 +341,7 @@ function collectFromDOM(collected: Map<string, ScrapedVideo>, fallbackChannel: s
 		for (const elem of scope.querySelectorAll(selector)) {
 			// Skip if inside secondary results (sidebar)
 			if (elem.closest('ytd-watch-next-secondary-results-renderer')) continue;
-			const video = extractFromElementData((elem as any).data, fallbackChannel);
+			const video = extractFromElementData((elem as any).data, fallbackChannel, elem);
 			if (video && !collected.has(video.id)) {
 				collected.set(video.id, video);
 			}
@@ -344,6 +364,8 @@ function buildPanel(): {
 	actionsEl: HTMLElement;
 	summaryEl: HTMLElement;
 	channelFilterEl: HTMLSelectElement;
+	minWatchEl: HTMLInputElement;
+	maxWatchEl: HTMLInputElement;
 	minDurEl: HTMLInputElement;
 	maxDurEl: HTMLInputElement;
 	maxCountEl: HTMLInputElement;
@@ -421,6 +443,17 @@ function buildPanel(): {
 	chRow.appendChild(channelFilterEl);
 	filtersEl.appendChild(chRow);
 
+	// Watched percentage range row
+	const watchRow = el('div', { display: 'flex', gap: '6px', alignItems: 'center', fontSize: '12px' });
+	watchRow.appendChild(el('label', { minWidth: '50px', color: '#888' }, 'Watched'));
+	const minWatchEl = input('number', { ...inputStyle, width: '50px', flex: 'none' }, { value: '', min: '0', max: '100', step: '5', placeholder: 'min' });
+	watchRow.appendChild(minWatchEl);
+	watchRow.appendChild(el('span', { color: '#666', fontSize: '11px' }, '–'));
+	const maxWatchEl = input('number', { ...inputStyle, width: '50px', flex: 'none' }, { value: '', min: '0', max: '100', step: '5', placeholder: 'max' });
+	watchRow.appendChild(maxWatchEl);
+	watchRow.appendChild(el('span', { color: '#666', fontSize: '11px' }, '%'));
+	filtersEl.appendChild(watchRow);
+
 	// Select all/none row
 	const selRow = el('div', { display: 'flex', gap: '8px' });
 	const selectAllBtn = document.createElement('button');
@@ -473,7 +506,7 @@ function buildPanel(): {
 
 	return {
 		panel, statusEl, scanBtn, filtersEl, videoListEl, actionsEl,
-		summaryEl, channelFilterEl, minDurEl, maxDurEl, maxCountEl, groupingEl,
+		summaryEl, channelFilterEl, minWatchEl, maxWatchEl, minDurEl, maxDurEl, maxCountEl, groupingEl,
 		channelNameEl, nameRowEl, exportBtn, selectAllBtn, selectNoneBtn, closeBtn
 	};
 }
@@ -496,6 +529,7 @@ function renderVideoItem(v: ScrapedVideo): HTMLElement {
 	info.appendChild(titleEl);
 
 	const meta = [v.durationText || formatSeconds(v.duration)];
+	if (v.watchedPct > 0) meta.push(`\u2713 ${v.watchedPct}%`);
 	if (v.channel) meta.push(v.channel);
 	if (v.uploadedText) meta.push(v.uploadedText);
 	if (v.views) meta.push(v.views);
@@ -591,6 +625,8 @@ function renderVideoItem(v: ScrapedVideo): HTMLElement {
 	};
 
 	ui.channelFilterEl.onchange = applyFilters;
+	ui.minWatchEl.oninput = applyFilters;
+	ui.maxWatchEl.oninput = applyFilters;
 	ui.minDurEl.oninput = applyFilters;
 	ui.maxDurEl.oninput = applyFilters;
 	ui.maxCountEl.oninput = applyFilters;
@@ -653,6 +689,10 @@ function renderVideoItem(v: ScrapedVideo): HTMLElement {
 
 	function applyFilters() {
 		const channelFilter = ui.channelFilterEl.value;
+		const minWatchVal = ui.minWatchEl.value.trim();
+		const maxWatchVal = ui.maxWatchEl.value.trim();
+		const minWatch = minWatchVal ? parseInt(minWatchVal, 10) : -1; // -1 = no filter
+		const maxWatch = maxWatchVal ? parseInt(maxWatchVal, 10) : -1;
 		const minDur = parseInt(ui.minDurEl.value, 10) || 0;
 		const maxDurVal = ui.maxDurEl.value.trim();
 		const maxDur = maxDurVal ? parseInt(maxDurVal, 10) : 0; // 0 = no max
@@ -660,6 +700,8 @@ function renderVideoItem(v: ScrapedVideo): HTMLElement {
 
 		filteredVideos = allVideos.filter((v) => {
 			if (channelFilter && v.channel !== channelFilter) return false;
+			if (minWatch >= 0 && v.watchedPct < minWatch) return false;
+			if (maxWatch >= 0 && v.watchedPct > maxWatch) return false;
 			if (v.duration < minDur) return false;
 			if (maxDur > 0 && v.duration > maxDur) return false;
 			return true;
