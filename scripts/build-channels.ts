@@ -77,16 +77,49 @@ function parseISO8601Duration(iso: string): number {
 	return (parseInt(match[1] || '0') * 3600) + (parseInt(match[2] || '0') * 60) + parseInt(match[3] || '0');
 }
 
-async function fetchVideoDurations(videoIds: string[], apiKey: string): Promise<Map<string, number>> {
-	const durations = new Map<string, number>();
+type VideoInfo = { duration: number; embeddable: boolean };
+
+async function fetchVideoInfo(videoIds: string[], apiKey: string): Promise<Map<string, VideoInfo>> {
+	const info = new Map<string, VideoInfo>();
 	for (let i = 0; i < videoIds.length; i += 50) {
 		const batch = videoIds.slice(i, i + 50);
-		const data = await apiFetch('videos', { part: 'contentDetails', id: batch.join(',') }, apiKey) as any;
+		const data = await apiFetch('videos', { part: 'contentDetails,status', id: batch.join(',') }, apiKey) as any;
 		for (const item of data.items) {
-			durations.set(item.id, parseISO8601Duration(item.contentDetails.duration));
+			info.set(item.id, {
+				duration: parseISO8601Duration(item.contentDetails.duration),
+				embeddable: item.status?.embeddable !== false
+			});
 		}
 	}
-	return durations;
+	return info;
+}
+
+/** Simple seeded PRNG (mulberry32) for reproducible daily shuffles. */
+function seededRandom(seed: number): () => number {
+	let state = seed | 0;
+	return () => {
+		state = (state + 0x6d2b79f5) | 0;
+		let t = Math.imul(state ^ (state >>> 15), 1 | state);
+		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+	};
+}
+
+/** Shuffle array using a seeded PRNG. */
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+	const result = [...arr];
+	const rand = seededRandom(seed);
+	for (let i = result.length - 1; i > 0; i--) {
+		const j = Math.floor(rand() * (i + 1));
+		[result[i], result[j]] = [result[j], result[i]];
+	}
+	return result;
+}
+
+/** Get a seed based on today's date (same seed all day, different each day). */
+function getDailySeed(): number {
+	const d = new Date();
+	return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 }
 
 /** Fetch videos from a single YouTube channel's uploads playlist. */
@@ -107,16 +140,16 @@ async function fetchSourceVideos(
 		if (!data.items?.length) break;
 
 		const ids = data.items.map((item: any) => item.snippet.resourceId.videoId);
-		const durations = await fetchVideoDurations(ids, apiKey);
+		const info = await fetchVideoInfo(ids, apiKey);
 
 		for (const item of data.items) {
 			const id = item.snippet.resourceId.videoId;
-			const duration = durations.get(id);
-			if (duration && duration >= MIN_VIDEO_DURATION && duration <= MAX_VIDEO_DURATION) {
+			const vi = info.get(id);
+			if (vi && vi.embeddable && vi.duration >= MIN_VIDEO_DURATION && vi.duration <= MAX_VIDEO_DURATION) {
 				videos.push({
 					id,
 					title: item.snippet.title,
-					duration,
+					duration: vi.duration,
 					thumbnail: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
 					creator: creatorName
 				});
@@ -139,18 +172,19 @@ function formatDuration(seconds: number): string {
 
 /**
  * Balance videos from multiple sources by equalising screen time.
- * Always picks from the source with the least accumulated duration,
- * so each YouTube channel gets roughly equal airtime regardless of
- * individual video lengths.
+ * Always picks from the source with the least accumulated duration.
+ * Each source's videos are shuffled with a daily seed so the
+ * programming changes each day while remaining deterministic.
  */
 function balanceVideos(sourceVideos: Map<string, VideoData[]>): VideoData[] {
 	const balanced: VideoData[] = [];
 	const seen = new Set<string>();
 	let totalDuration = 0;
+	const dailySeed = getDailySeed();
 
-	const sources = [...sourceVideos.entries()].map(([name, videos]) => ({
+	const sources = [...sourceVideos.entries()].map(([name, videos], i) => ({
 		name,
-		videos,
+		videos: seededShuffle(videos, dailySeed + i), // Different shuffle per source
 		index: 0,
 		duration: 0
 	}));
