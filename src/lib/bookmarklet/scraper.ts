@@ -8,6 +8,10 @@
  * Trusted Types CSP.
  */
 
+// Injected at build time by build-bookmarklet.ts
+declare const __BOOKMARKLET_VERSION__: string;
+declare const __BOOKMARKLET_VERSION_URL__: string;
+
 // ─── Types ───────────────────────────────────────────────────────────
 
 type ScrapedVideo = {
@@ -557,6 +561,24 @@ function renderVideoItem(v: ScrapedVideo): HTMLElement {
 	let filteredVideos: ScrapedVideo[] = [];
 
 	ui.closeBtn.onclick = () => ui.panel.remove();
+
+	// Check for updates if a version URL is configured
+	if (__BOOKMARKLET_VERSION_URL__) {
+		fetch(__BOOKMARKLET_VERSION_URL__ + '?_=' + Date.now())
+			.then((r) => r.ok ? r.text() : '')
+			.then((latest) => {
+				latest = latest.trim();
+				if (latest && latest !== __BOOKMARKLET_VERSION__) {
+					const banner = el('div', {
+						padding: '6px 16px', fontSize: '11px', color: '#fc0',
+						background: '#1a1a00', borderBottom: '1px solid #333', cursor: 'pointer'
+					}, '\u26A0 Update available — re-drag the bookmarklet from CableBox to update');
+					banner.onclick = () => banner.remove();
+					ui.panel.insertBefore(banner, ui.statusEl);
+				}
+			})
+			.catch(() => {}); // silently ignore if version check fails
+	}
 
 	let scanning = false;
 
