@@ -7,10 +7,17 @@ import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { build } from 'esbuild';
+import { execSync } from 'child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const srcPath = resolve(__dirname, '..', 'src', 'lib', 'bookmarklet', 'scraper.ts');
 const outDir = resolve(__dirname, '..', 'static');
+
+let commitHash = 'dev';
+try { commitHash = execSync('git rev-parse --short HEAD').toString().trim(); } catch {}
+
+// Optional: set BOOKMARKLET_VERSION_URL env var to enable update checking
+const versionUrl = process.env.BOOKMARKLET_VERSION_URL || '';
 
 async function main() {
 	// Bundle and minify the scraper
@@ -21,6 +28,10 @@ async function main() {
 		write: false,
 		format: 'iife',
 		target: 'es2020',
+		define: {
+			'__BOOKMARKLET_VERSION__': JSON.stringify(commitHash),
+			'__BOOKMARKLET_VERSION_URL__': JSON.stringify(versionUrl),
+		},
 	});
 
 	const code = result.outputFiles[0].text;
