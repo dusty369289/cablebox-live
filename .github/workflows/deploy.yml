@@ -24,6 +24,14 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm run build:bookmarklet
+      - name: Update bookmarklet gist
+        run: |
+          gh gist edit a1694b43d68a044186603bf2c73313e5 \
+            --filename bookmarklet.js \
+            static/bookmarklet.js
+        env:
+          GH_TOKEN: ${{ secrets.GIST_TOKEN }}
       - run: npm run build
         env:
           BASE_PATH: '/${{ github.event.repository.name }}'

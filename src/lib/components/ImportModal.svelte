@@ -15,15 +15,14 @@
 	};
 
 	let { onImport, onClose, nextChannelNumber, existingChannels }: Props = $props();
+	// Loader bookmarklet: tries gist first (auto-updates), falls back to static bundled copy
+	const gistUrl = 'https://gist.githubusercontent.com/dusty369289/a1694b43d68a044186603bf2c73313e5/raw/bookmarklet.js';
 	let bookmarkletHref = $state('');
 	let mode = $state<'youtube' | 'local'>('youtube');
 
 	onMount(async () => {
-		try {
-			const res = await fetch(`${base}/bookmarklet.js`);
-			const code = await res.text();
-			bookmarkletHref = `javascript:void(${encodeURIComponent(`(function(){${code}})()`)})`;
-		} catch {}
+		const loader = `(function(){fetch('${gistUrl}').then(function(r){if(!r.ok)throw 0;return r.text()}).then(eval).catch(function(){fetch('${base}/bookmarklet.js').then(function(r){return r.text()}).then(eval)})})()`;
+		bookmarkletHref = `javascript:void(${encodeURIComponent(loader)})`;
 		updateStorageInfo();
 	});
 
