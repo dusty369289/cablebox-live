@@ -27,8 +27,17 @@ jobs:
             echo "Error: static/data/channels.json is missing or empty"
             exit 1
           fi
-          jq -n --rawfile content static/data/channels.json \
-            '{files: {"channels.json": {content: $content}}}' \
-            | gh api -X PATCH /gists/5ec22d2a61f18d920b9c8c4d19a31303 --input -
+          for attempt in 1 2 3 4 5; do
+            if gh gist edit 5ec22d2a61f18d920b9c8c4d19a31303 \
+                 --filename channels.json \
+                 static/data/channels.json; then
+              exit 0
+            fi
+            backoff=$((10 * attempt))
+            echo "Attempt $attempt failed; retrying in ${backoff}s..."
+            sleep $backoff
+          done
+          echo "Gist update failed after 5 attempts"
+          exit 1
         env:
           GH_TOKEN: ${{ secrets.GIST_TOKEN }}
