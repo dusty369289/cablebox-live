@@ -23,8 +23,12 @@ jobs:
 
       - name: Update gist
         run: |
-          gh gist edit 5ec22d2a61f18d920b9c8c4d19a31303 \
-            --filename channels.json \
-            static/data/channels.json
+          if [ ! -s static/data/channels.json ]; then
+            echo "Error: static/data/channels.json is missing or empty"
+            exit 1
+          fi
+          jq -n --rawfile content static/data/channels.json \
+            '{files: {"channels.json": {content: $content}}}' \
+            | gh api -X PATCH /gists/5ec22d2a61f18d920b9c8c4d19a31303 --input -
         env:
           GH_TOKEN: ${{ secrets.GIST_TOKEN }}
