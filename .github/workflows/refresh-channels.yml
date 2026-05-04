@@ -23,8 +23,21 @@ jobs:
 
       - name: Update gist
         run: |
-          gh gist edit 5ec22d2a61f18d920b9c8c4d19a31303 \
-            --filename channels.json \
-            static/data/channels.json
+          if [ ! -s static/data/channels.json ]; then
+            echo "Error: static/data/channels.json is missing or empty"
+            exit 1
+          fi
+          for attempt in 1 2 3 4 5; do
+            if gh gist edit 5ec22d2a61f18d920b9c8c4d19a31303 \
+                 --filename channels.json \
+                 static/data/channels.json; then
+              exit 0
+            fi
+            backoff=$((10 * attempt))
+            echo "Attempt $attempt failed; retrying in ${backoff}s..."
+            sleep $backoff
+          done
+          echo "Gist update failed after 5 attempts"
+          exit 1
         env:
           GH_TOKEN: ${{ secrets.GIST_TOKEN }}
